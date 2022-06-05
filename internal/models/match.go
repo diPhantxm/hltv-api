@@ -1,0 +1,12 @@
+package models
+
+import "time"
+
+type Match struct {
+	TeamA            Team      `json:"teamA"`
+	TeamB            Team      `json:"teamB"`
+	StartTime        time.Time `json:"start"`
+	Maps             []string  `json:"maps,omitempty"`
+	Viewers          int       `json:"viewers"`
+	PlayerOfTheMatch Player    `json:"playerOfTheMatch,omitempty"`
+}
