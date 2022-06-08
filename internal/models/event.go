@@ -3,9 +3,11 @@ package models
 import "time"
 
 type Event struct {
-	StartDate time.Time
-	EndDate   time.Time
-	PrizePool int
-	Teams     []Team
-	Location  string
+	Id        int       `json:"Id"`
+	Name      string    `json:"Name"`
+	StartDate time.Time `json:"Start Date"`
+	EndDate   time.Time `json:"End Date"`
+	PrizePool int       `json:"Prize Pool"`
+	Teams     []Team    `json:"Teams"`
+	Location  string    `json:"Location"`
 }
