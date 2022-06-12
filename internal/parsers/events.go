@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -123,18 +122,10 @@ func (p eventParser) parseDate(document *goquery.Document, index int) (time.Time
 	return time.UnixMilli(unixTime), nil
 }
 
-func (p eventParser) parsePrizePool(document *goquery.Document) (int, error) {
-	prizePoolTag := document.Find(".prizepool")
+func (p eventParser) parsePrizePool(document *goquery.Document) (string, error) {
+	prizePoolTag := document.Find(".prizepool").Eq(1)
 
-	prizePoolStrWithDollar := strings.ReplaceAll(prizePoolTag.Eq(1).Text(), ",", "")
-	prizePoolStr := strings.ReplaceAll(prizePoolStrWithDollar, "$", "")
-
-	prizePool, err := strconv.Atoi(prizePoolStr)
-	if err != nil {
-		return 0, err
-	}
-
-	return prizePool, nil
+	return prizePoolTag.Text(), nil
 }
 
 func (p eventParser) parseTeams(document *goquery.Document) ([]string, error) {

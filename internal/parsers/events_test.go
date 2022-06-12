@@ -19,7 +19,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			Name:      "IEM Dallas 2022",
 			StartDate: time.UnixMilli(1653904800000),
 			EndDate:   time.UnixMilli(1654423200000),
-			PrizePool: 250000,
+			PrizePool: "$250,000",
 			Teams: []string{
 				"FaZe", "ENCE", "NIP", "G2", "FURIA", "Cloud9", "Vitality", "Astralis",
 				"Liquid", "Imperial", "BIG", "Movistar Riders", "MOUZ", "MIBR", "Complexity", "Encore",
@@ -31,7 +31,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			Name:      "PGL Major Antwerp 2022",
 			StartDate: time.UnixMilli(1652522400000),
 			EndDate:   time.UnixMilli(1653213600000),
-			PrizePool: 1000000,
+			PrizePool: "$1,000,000",
 			Teams: []string{
 				"FaZe", "Natus Vincere", "ENCE", "Cloud9", "Heroic", "G2", "FURIA", "NIP",
 				"Outsiders", "Vitality", "Liquid", "Copenhagen Flames", "BIG", "Spirit",
@@ -44,7 +44,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			Name:      "Blast Premier Spring Showdown 2022 Europe",
 			StartDate: time.UnixMilli(1651053600000),
 			EndDate:   time.UnixMilli(1651399200000),
-			PrizePool: 67500,
+			PrizePool: "$67,500",
 			Teams: []string{
 				"Heroic", "ENCE", "NIP", "Astralis", "Movistar Riders", "Copenhagen Flames", "Bad News Eagles", "NKT",
 			},
@@ -55,7 +55,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			Name:      "ESL Pro League Season 15",
 			StartDate: time.UnixMilli(1646823600000),
 			EndDate:   time.UnixMilli(1649584800000),
-			PrizePool: 823000,
+			PrizePool: "$823,000",
 			Teams: []string{
 				"Natus Vincere", "Players", "G2", "FaZe", "Vitality", "Outsiders", "Heroic", "NIP", "Astralis", "BIG", "Entropiq", "MOUZ", "FURIA", "ENCE", "GODSENT", "Sprout", "Movistar Riders",
 				"Complexity", "Liquid", "Party Astronauts", "Evil Geniuses", "Looking For Org", "AGO", "fnatic",
@@ -111,7 +111,7 @@ func areEventsEqual(x models.Event, y models.Event) (bool, string) {
 		return false, "end date"
 	}
 
-	if x.PrizePool != y.PrizePool {
+	if !strings.EqualFold(x.PrizePool, y.PrizePool) {
 		return false, "prize pool"
 	}
 

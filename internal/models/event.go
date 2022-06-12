@@ -7,7 +7,7 @@ type Event struct {
 	Name      string    `json:"Name"`
 	StartDate time.Time `json:"Start Date"`
 	EndDate   time.Time `json:"End Date"`
-	PrizePool int       `json:"Prize Pool"`
+	PrizePool string    `json:"Prize Pool"`
 	Teams     []string  `json:"Teams"`
 	Location  string    `json:"Location"`
 }
