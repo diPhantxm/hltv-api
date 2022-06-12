@@ -1,4 +1,4 @@
-package internal
+package api
 
 type Config struct {
 	Address string
