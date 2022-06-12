@@ -43,29 +43,27 @@ func (a Api) configureRoutes() {
 	{
 		teams := v1.Group("teams/")
 		{
+			teams.GET("/", a.teamsController.GetAll)
 			teams.GET("/:id", a.teamsController.GetById)
-			teams.GET("/name/:name", a.teamsController.GetByName)
-			teams.GET("/country/:country", a.teamsController.GetByCountry)
 		}
 
 		players := v1.Group("/players")
 		{
+			players.GET("/", a.playersController.GetAll)
 			players.GET("/:id", a.playersController.GetById)
-			players.GET("/nickname/:nickname", a.playersController.GetByNickname)
 		}
 
 		matches := v1.Group("/matches")
 		{
+			matches.GET("/", a.matchesController.GetAll)
 			matches.GET("/:id", a.matchesController.GetById)
 			matches.GET("/date/:date", a.matchesController.GetByDate)
 		}
 
 		events := v1.Group("/events")
 		{
+			events.GET("/", a.eventsController.GetAll)
 			events.GET("/:id", a.eventsController.GetById)
-			events.GET("/name/:name", a.eventsController.GetByName)
-			events.GET("/prizepool/:prizepool", a.eventsController.GetByPrizePool)
-			events.GET("/country/:country", a.eventsController.GetByCountry)
 		}
 	}
 }

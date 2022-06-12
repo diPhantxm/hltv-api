@@ -6,4 +6,5 @@ type MatchesController interface {
 	Controller
 	GetById(ctx *gin.Context)
 	GetByDate(ctx *gin.Context)
+	GetAll(ctx *gin.Context)
 }

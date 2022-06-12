@@ -5,5 +5,5 @@ import "github.com/gin-gonic/gin"
 type PlayersController interface {
 	Controller
 	GetById(ctx *gin.Context)
-	GetByNickname(ctx *gin.Context)
+	GetAll(ctx *gin.Context)
 }
