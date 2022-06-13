@@ -15,13 +15,13 @@ func TestUrlBuilder(t *testing.T) {
 			builder.Match()
 			builder.AddId(123)
 			return builder.String()
-		}, "https://hltv.org/match/123/_"},
+		}, "https://hltv.org/matches/123/_"},
 		{func() string {
 			builder := NewUrlBuilder()
 			builder.Event()
 			builder.AddId(123)
 			return builder.String()
-		}, "https://hltv.org/event/123/_"},
+		}, "https://hltv.org/events/123/_"},
 		{func() string {
 			builder := NewUrlBuilder()
 			builder.Team()
@@ -40,21 +40,26 @@ func TestUrlBuilder(t *testing.T) {
 			builder.AddId(123)
 			builder.AddName("fnatic-vs-natus-vincere")
 			return builder.String()
-		}, "https://hltv.org/match/123/fnatic-vs-natus-vincere"},
+		}, "https://hltv.org/matches/123/fnatic-vs-natus-vincere?"},
 		{func() string {
 			builder := NewUrlBuilder()
 			builder.Team()
 			builder.AddId(12546)
 			builder.AddName("natus-vincere")
 			return builder.String()
-		}, "https://hltv.org/team/12546/natus-vincere"},
+		}, "https://hltv.org/team/12546/natus-vincere?"},
 		{func() string {
 			builder := NewUrlBuilder()
 			builder.Event()
 			builder.AddId(1)
 			builder.AddName("esl-pro-league-season-15")
 			return builder.String()
-		}, "https://hltv.org/event/1/esl-pro-league-season-15"},
+		}, "https://hltv.org/events/1/esl-pro-league-season-15?"},
+		{func() string {
+			builder := NewUrlBuilder()
+			builder.Event()
+			return builder.String()
+		}, "https://hltv.org/events/"},
 	}
 
 	for _, test := range tests {
