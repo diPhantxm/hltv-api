@@ -21,6 +21,39 @@ func GetPlayer(url string) (*models.Player, error) {
 	return parsePlayerResponseAndId(url, response)
 }
 
+func GetAllPlayersIds(url string) ([]int, error) {
+	response, err := sendRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	matchTags := document.Find(".stats-table").Find("tbody").Find("tr")
+	ids := make([]int, matchTags.Length())
+
+	matchTags.Each(func(i int, selection *goquery.Selection) {
+		link, ok := selection.Find(".playerCol").Find("a").Attr("href")
+		if !ok {
+			return
+		}
+
+		idStr := strings.Split(link, "/")[3]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return
+		}
+
+		ids[i] = id
+	})
+
+	return ids, nil
+}
+
 func parsePlayerResponseAndId(url string, response *http.Response) (*models.Player, error) {
 	p := playerParser{}
 

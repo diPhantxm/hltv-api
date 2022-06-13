@@ -21,6 +21,39 @@ func GetTeam(url string) (*models.Team, error) {
 	return parseTeamResponseAndId(url, response)
 }
 
+func GetAllTeamsIds(url string) ([]int, error) {
+	response, err := sendRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	teamTags := document.Find(".stats-table").Find("tbody").Find("tr")
+	ids := make([]int, teamTags.Length())
+
+	teamTags.Each(func(i int, selection *goquery.Selection) {
+		link, ok := selection.Find(".teamCol-teams-overview").Find("a").Attr("href")
+		if !ok {
+			return
+		}
+
+		idStr := strings.Split(link, "/")[3]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return
+		}
+
+		ids[i] = id
+	})
+
+	return ids, nil
+}
+
 func parseTeamResponseAndId(url string, response *http.Response) (*models.Team, error) {
 	p := teamsParsers{}
 	team, err := p.parse(response)

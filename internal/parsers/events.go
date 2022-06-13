@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,6 +20,39 @@ func GetEvent(url string) (*models.Event, error) {
 	defer response.Body.Close()
 
 	return parseEventResponseAndId(url, response)
+}
+
+func GetUpcomingEventsIds(url string) ([]int, error) {
+	response, err := sendRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	eventTags := document.Find(".events-holder").Find(".events-month")
+	ids := make([]int, eventTags.Length())
+
+	eventTags.Each(func(i int, selection *goquery.Selection) {
+		link, ok := selection.Find(".a-reset").Attr("href")
+		if !ok {
+			return
+		}
+
+		idStr := strings.Split(link, "/")[2]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return
+		}
+
+		ids[i] = id
+	})
+
+	return ids, nil
 }
 
 func parseEventResponseAndId(url string, response *http.Response) (*models.Event, error) {

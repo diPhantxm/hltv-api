@@ -12,6 +12,39 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+func GetUpcomingMatchesIds(url string) ([]int, error) {
+	response, err := sendRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	matchTags := document.Find(".upcomingMatchesSection")
+	ids := make([]int, matchTags.Length())
+
+	matchTags.Each(func(i int, selection *goquery.Selection) {
+		link, ok := selection.Find(".match").Attr("href")
+		if !ok {
+			return
+		}
+
+		idStr := strings.Split(link, "/")[2]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return
+		}
+
+		ids[i] = id
+	})
+
+	return ids, nil
+}
+
 func GetMatch(url string) (*models.Match, error) {
 	response, err := sendRequest(url)
 	if err != nil {
@@ -125,7 +158,7 @@ func (p matchParser) parseStartTime(document *goquery.Document) (time.Time, erro
 
 func (p matchParser) parseMaps(document *goquery.Document) ([]string, error) {
 	maps := []string{}
-	mapTags := document.Find(".mapname")
+	mapTags := document.Find(".mapholder").Find(".mapname")
 
 	if mapTags == nil {
 		return nil, errors.New("no maps were found on page")
