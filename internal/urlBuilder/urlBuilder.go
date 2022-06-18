@@ -21,6 +21,7 @@ var (
 	teamUrl      = `team/`
 	playersStats = `stats/players/`
 	teamsStats   = `stats/teams/`
+	resultsUrl   = `results/`
 )
 
 type UrlBuilder struct {
@@ -63,6 +64,17 @@ func (b *UrlBuilder) AddId(id int) {
 
 func (b *UrlBuilder) AddName(name string) {
 	b.url["name"] = fmt.Sprintf("%s?", name)
+}
+
+func (b *UrlBuilder) Results() {
+	b.url["group"] = resultsUrl
+}
+
+func (b *UrlBuilder) AddParam(param string, value string) {
+	if b.url["params"] == "" {
+		b.url["params"] += "?"
+	}
+	b.url["params"] += fmt.Sprintf("%s=%s&", param, value)
 }
 
 func (b *UrlBuilder) String() string {
