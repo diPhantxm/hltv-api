@@ -27,7 +27,7 @@ func NewApi(config Config, strategy controllers.ControllersStrategy) *Api {
 	}
 }
 
-func (a Api) Run() {
+func (a *Api) Run() {
 	a.teamsController.Run()
 	a.playersController.Run()
 	a.matchesController.Run()
@@ -38,7 +38,7 @@ func (a Api) Run() {
 	a.handler.Run(a.config.Port)
 }
 
-func (a Api) configureRoutes() {
+func (a *Api) configureRoutes() {
 	v1 := a.handler.Group("/v1")
 	{
 		teams := v1.Group("teams/")
