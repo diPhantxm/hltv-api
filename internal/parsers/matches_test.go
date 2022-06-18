@@ -83,6 +83,37 @@ func TestGetFinishedMatch(t *testing.T) {
 	}
 }
 
+func TestGetIdsByDate(t *testing.T) {
+	tests := []struct {
+		Url    string
+		Result []int
+	}{
+		{"https://www.hltv.org/results?startDate=2022-06-15&endDate=2022-06-15", []int{2356632}},
+		{"https://www.hltv.org/results/?startDate=2022-06-14&endDate=2022-06-14&", []int{2356788, 2356787}},
+		{"https://www.hltv.org/results/?startDate=2022-06-13&endDate=2022-06-13&", []int{2356786, 2356785, 2356834, 2356826, 2356819}},
+		{"https://www.hltv.org/results?startDate=2022-06-13&endDate=2022-06-13", []int{2356786, 2356785, 2356834, 2356826, 2356819}},
+	}
+
+	for _, test := range tests {
+		ids, err := GetMatchesIdsByDate(test.Url)
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
+
+		idsMap := make(map[int]struct{})
+
+		for _, id := range ids {
+			idsMap[id] = struct{}{}
+		}
+
+		for _, id := range test.Result {
+			if _, ok := idsMap[id]; !ok {
+				t.Errorf("There is no id %d in result\n", id)
+			}
+		}
+	}
+}
+
 func BenchmarkParseMatch(b *testing.B) {
 	const url = "https://www.hltv.org/matches/2356673/nip-vs-nasr-global-esports-tour-dubai-2022"
 	response, _ := sendRequest(url)

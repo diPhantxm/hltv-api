@@ -45,6 +45,38 @@ func GetUpcomingMatchesIds(url string) ([]int, error) {
 	return ids, nil
 }
 
+func GetMatchesIdsByDate(url string) ([]int, error) {
+	response, err := sendRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	idTags := document.Find(".results-all").Find("a")
+	ids := make([]int, idTags.Length())
+
+	idTags.Each(func(i int, selection *goquery.Selection) {
+		link, ok := selection.Attr("href")
+		if !ok {
+			return
+		}
+
+		id, err := strconv.Atoi(strings.Split(link, "/")[2])
+		if err != nil {
+			return
+		}
+
+		ids[i] = id
+	})
+
+	return ids, nil
+}
+
 func GetMatch(url string) (*models.Match, error) {
 	response, err := sendRequest(url)
 	if err != nil {
