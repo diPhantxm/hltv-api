@@ -11,10 +11,10 @@ import (
 
 func TestGetTeam(t *testing.T) {
 	tests := []struct {
-		Url    string
+		Id     int
 		Result models.Team
 	}{
-		{"https://www.hltv.org/team/4869/ence", models.Team{
+		{4869, models.Team{
 			Id:           4869,
 			Ranking:      2,
 			WeeksInTop30: 64,
@@ -34,15 +34,17 @@ func TestGetTeam(t *testing.T) {
 		}},
 	}
 
+	p := TeamParser{}
+
 	for _, test := range tests {
-		team, err := GetTeam(test.Url)
+		team, err := p.GetTeam(test.Id)
 
 		if err != nil {
-			t.Errorf("Parse %s ended with error. Error: %s\n", test.Url, err.Error())
+			t.Errorf("Parse %d ended with error. Error: %s\n", test.Id, err.Error())
 		}
 
 		if ok, field := areTeamsEqual(test.Result, *team); !ok {
-			t.Errorf("Parse Team %s ended with error. %s\n", test.Url, field)
+			t.Errorf("Parse Team %d ended with error. %s\n", test.Id, field)
 		}
 	}
 }
@@ -52,12 +54,14 @@ func BenchmarkParseTeam(b *testing.B) {
 	response, _ := sendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
+	p := TeamParser{}
+
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := parseTeamResponseAndId(url, response)
+		_, err := p.parseTeamResponseAndId(url, response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseTeam. Error: %v\n", err.Error())

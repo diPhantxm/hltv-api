@@ -3,6 +3,7 @@ package parsers
 import (
 	"errors"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -11,17 +12,47 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetPlayer(url string) (*models.Player, error) {
-	response, err := sendRequest(url)
+type PlayerParser struct {
+}
+
+func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Player()
+	url.AddId(id)
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	return parsePlayerResponseAndId(url, response)
+	return p.parsePlayerResponseAndId(url.String(), response)
 }
 
-func GetAllPlayersIds(url string) ([]int, error) {
+func (p PlayerParser) GetPlayers() ([]models.Player, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.PlayersStats()
+	playersStatsList := url.String()
+
+	ids, err := p.getAllPlayersIds(playersStatsList)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Player, len(ids))
+	for i, id := range ids {
+		player, err := p.GetPlayer(id)
+		if err != nil {
+			continue
+		}
+
+		result[i] = *player
+	}
+
+	return result, nil
+}
+
+func (p PlayerParser) getAllPlayersIds(url string) ([]int, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
@@ -54,9 +85,7 @@ func GetAllPlayersIds(url string) ([]int, error) {
 	return ids, nil
 }
 
-func parsePlayerResponseAndId(url string, response *http.Response) (*models.Player, error) {
-	p := playerParser{}
-
+func (p PlayerParser) parsePlayerResponseAndId(url string, response *http.Response) (*models.Player, error) {
 	player, err := p.parse(response)
 	if err != nil {
 		return nil, err
@@ -67,13 +96,15 @@ func parsePlayerResponseAndId(url string, response *http.Response) (*models.Play
 		return nil, err
 	}
 
-	stats, err := GetStats(url)
+	statsParser := StatsParser{}
+	stats, err := statsParser.GetStats(url)
 	if err != nil {
 		return nil, err
 	}
 	player.Stats = *stats
 
-	socials, err := GetSocials(url)
+	socialParser := SocialParser{}
+	socials, err := socialParser.GetSocials(url)
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +113,7 @@ func parsePlayerResponseAndId(url string, response *http.Response) (*models.Play
 	return player, nil
 }
 
-type playerParser struct {
-}
-
-func (p playerParser) parseId(url string) (int, error) {
+func (p PlayerParser) parseId(url string) (int, error) {
 	re := regexp.MustCompile(`\d+`)
 	idStr := re.FindString(url)
 
@@ -94,7 +122,7 @@ func (p playerParser) parseId(url string) (int, error) {
 	return id, nil
 }
 
-func (p playerParser) parse(response *http.Response) (*models.Player, error) {
+func (p PlayerParser) parse(response *http.Response) (*models.Player, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err
@@ -130,7 +158,7 @@ func (p playerParser) parse(response *http.Response) (*models.Player, error) {
 	return player, nil
 }
 
-func (p playerParser) parseAge(document *goquery.Document) (int, error) {
+func (p PlayerParser) parseAge(document *goquery.Document) (int, error) {
 	ageTag := document.Find(".playerAge").Find("span").Last()
 
 	ageStr := strings.Split(ageTag.Text(), " ")
@@ -142,13 +170,13 @@ func (p playerParser) parseAge(document *goquery.Document) (int, error) {
 	return age, nil
 }
 
-func (p playerParser) parseNickname(document *goquery.Document) (string, error) {
+func (p PlayerParser) parseNickname(document *goquery.Document) (string, error) {
 	nicknameTag := document.Find(".playerNickname")
 
 	return nicknameTag.Text(), nil
 }
 
-func (p playerParser) parseTeam(document *goquery.Document) (string, error) {
+func (p PlayerParser) parseTeam(document *goquery.Document) (string, error) {
 	teamTag := document.Find(".playerTeam").Find("span").Last()
 
 	team := teamTag.Text()
@@ -156,7 +184,7 @@ func (p playerParser) parseTeam(document *goquery.Document) (string, error) {
 	return team, nil
 }
 
-func (p playerParser) parseName(document *goquery.Document) (string, string, error) {
+func (p PlayerParser) parseName(document *goquery.Document) (string, string, error) {
 	nameTag := document.Find(".playerRealname").Text()
 
 	nameSplit := strings.Split(nameTag, " ")[1:]
@@ -168,7 +196,7 @@ func (p playerParser) parseName(document *goquery.Document) (string, string, err
 	return nameSplit[0], nameSplit[1], nil
 }
 
-func (p playerParser) parseCountry(document *goquery.Document) (string, error) {
+func (p PlayerParser) parseCountry(document *goquery.Document) (string, error) {
 	flagTag := document.Find(".flag")
 
 	country, ok := flagTag.Attr("alt")

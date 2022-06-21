@@ -3,6 +3,7 @@ package parsers
 import (
 	"errors"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -11,17 +12,46 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetTeam(url string) (*models.Team, error) {
-	response, err := sendRequest(url)
+type TeamParser struct{}
+
+func (p TeamParser) GetTeam(id int) (*models.Team, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Team()
+	url.AddId(id)
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	return parseTeamResponseAndId(url, response)
+	return p.parseTeamResponseAndId(url.String(), response)
 }
 
-func GetAllTeamsIds(url string) ([]int, error) {
+func (p TeamParser) GetTeams() ([]models.Team, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.TeamsStats()
+	teamsStatsList := url.String()
+
+	ids, err := p.getAllTeamsIds(teamsStatsList)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Team, len(ids))
+	for i, id := range ids {
+		team, err := p.GetTeam(id)
+		if err != nil {
+			continue
+		}
+
+		result[i] = *team
+	}
+
+	return result, nil
+}
+
+func (p TeamParser) getAllTeamsIds(url string) ([]int, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
@@ -54,8 +84,7 @@ func GetAllTeamsIds(url string) ([]int, error) {
 	return ids, nil
 }
 
-func parseTeamResponseAndId(url string, response *http.Response) (*models.Team, error) {
-	p := teamsParsers{}
+func (p TeamParser) parseTeamResponseAndId(url string, response *http.Response) (*models.Team, error) {
 	team, err := p.parse(response)
 	if err != nil {
 		return nil, err
@@ -63,7 +92,7 @@ func parseTeamResponseAndId(url string, response *http.Response) (*models.Team, 
 
 	team.Id = p.parseId(url)
 
-	socialParser := socialParser{}
+	socialParser := SocialParser{}
 	socials, err := socialParser.parse(response)
 	if err != nil {
 		return nil, err
@@ -73,9 +102,7 @@ func parseTeamResponseAndId(url string, response *http.Response) (*models.Team, 
 	return team, nil
 }
 
-type teamsParsers struct{}
-
-func (p teamsParsers) parseId(url string) int {
+func (p TeamParser) parseId(url string) int {
 	re := regexp.MustCompile(`\d+`)
 	idStr := re.FindString(url)
 
@@ -84,7 +111,7 @@ func (p teamsParsers) parseId(url string) int {
 	return id
 }
 
-func (p teamsParsers) parse(response *http.Response) (*models.Team, error) {
+func (p TeamParser) parse(response *http.Response) (*models.Team, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err
@@ -114,7 +141,7 @@ func (p teamsParsers) parse(response *http.Response) (*models.Team, error) {
 	return team, nil
 }
 
-func (p teamsParsers) parseName(document *goquery.Document) (string, error) {
+func (p TeamParser) parseName(document *goquery.Document) (string, error) {
 	nameTag := document.Find(".profile-team-name")
 	name := nameTag.Text()
 
@@ -125,7 +152,7 @@ func (p teamsParsers) parseName(document *goquery.Document) (string, error) {
 	return name, nil
 }
 
-func (p teamsParsers) parseCountry(document *goquery.Document) (string, error) {
+func (p TeamParser) parseCountry(document *goquery.Document) (string, error) {
 	countryTag := document.Find(".team-country").Find("img.flag")
 
 	country, ok := countryTag.Attr("alt")
@@ -136,7 +163,7 @@ func (p teamsParsers) parseCountry(document *goquery.Document) (string, error) {
 	return country, nil
 }
 
-func (p teamsParsers) parseProfileTeamStats(document *goquery.Document) (int, int, float32) {
+func (p TeamParser) parseProfileTeamStats(document *goquery.Document) (int, int, float32) {
 	ranking := 0
 	weeksInTop30 := 0
 	var averageAge float32 = 0
@@ -173,7 +200,7 @@ func (p teamsParsers) parseProfileTeamStats(document *goquery.Document) (int, in
 	return ranking, weeksInTop30, averageAge
 }
 
-func (p teamsParsers) parseAchievements(document *goquery.Document) []models.Achievement {
+func (p TeamParser) parseAchievements(document *goquery.Document) []models.Achievement {
 	table := document.Find(".achievement-table")
 	rows := table.Find("t-body").Find("tr")
 

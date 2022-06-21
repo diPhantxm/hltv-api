@@ -11,10 +11,10 @@ import (
 
 func TestGetPlayer(t *testing.T) {
 	tests := []struct {
-		Url    string
+		Id     int
 		Result models.Player
 	}{
-		{"https://www.hltv.org/player/922/snappi", models.Player{
+		{922, models.Player{
 			Id:        922,
 			Age:       32,
 			Team:      "ENCE",
@@ -34,7 +34,7 @@ func TestGetPlayer(t *testing.T) {
 				{Name: "twitter", Link: "https://www.twitter.com/SnappiCSGO"},
 			},
 		}},
-		{"https://www.hltv.org/player/9618/nexa", models.Player{
+		{9618, models.Player{
 			Id:        9618,
 			Age:       25,
 			Team:      "OG",
@@ -56,15 +56,17 @@ func TestGetPlayer(t *testing.T) {
 		}},
 	}
 
+	p := PlayerParser{}
+
 	for _, test := range tests {
-		player, err := GetPlayer(test.Url)
+		player, err := p.GetPlayer(test.Id)
 
 		if err != nil {
-			t.Errorf("Parse Players %s ended with error. Error: %s\n", test.Url, err.Error())
+			t.Errorf("Parse Players %d ended with error. Error: %s\n", test.Id, err.Error())
 		}
 
 		if ok, field := arePlayersEqual(test.Result, *player); !ok {
-			t.Errorf("Parse Players %s ended with error. Field: %s\n", test.Url, field)
+			t.Errorf("Parse Players %d ended with error. Field: %s\n", test.Id, field)
 		}
 	}
 }
@@ -74,12 +76,14 @@ func BenchmarkParsePlayer(b *testing.B) {
 	response, _ := sendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
+	p := PlayerParser{}
+
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := parsePlayerResponseAndId(url, response)
+		_, err := p.parsePlayerResponseAndId(url, response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParsePlayer. Error: %v\n", err.Error())

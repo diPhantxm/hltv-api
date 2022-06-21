@@ -3,6 +3,7 @@ package parsers
 import (
 	"errors"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -12,17 +13,47 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetEvent(url string) (*models.Event, error) {
-	response, err := sendRequest(url)
+type EventParser struct {
+}
+
+func (p EventParser) GetEvent(id int) (*models.Event, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Event()
+	url.AddId(id)
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	return parseEventResponseAndId(url, response)
+	return p.parseEventResponseAndId(url.String(), response)
 }
 
-func GetUpcomingEventsIds(url string) ([]int, error) {
+func (p EventParser) GetEvents() ([]models.Event, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Event()
+	eventsListLink := url.String()
+
+	ids, err := p.getUpcomingEventsIds(eventsListLink)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]models.Event, len(ids))
+
+	for i, id := range ids {
+		event, err := p.GetEvent(id)
+		if err != nil {
+			continue
+		}
+
+		result[i] = *event
+	}
+
+	return result, nil
+}
+
+func (p EventParser) getUpcomingEventsIds(url string) ([]int, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
@@ -55,9 +86,7 @@ func GetUpcomingEventsIds(url string) ([]int, error) {
 	return ids, nil
 }
 
-func parseEventResponseAndId(url string, response *http.Response) (*models.Event, error) {
-	p := eventParser{}
-
+func (p EventParser) parseEventResponseAndId(url string, response *http.Response) (*models.Event, error) {
 	event, err := p.parse(response)
 	if err != nil {
 		return nil, err
@@ -71,10 +100,7 @@ func parseEventResponseAndId(url string, response *http.Response) (*models.Event
 	return event, nil
 }
 
-type eventParser struct {
-}
-
-func (p eventParser) parse(response *http.Response) (*models.Event, error) {
+func (p EventParser) parse(response *http.Response) (*models.Event, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err
@@ -115,7 +141,7 @@ func (p eventParser) parse(response *http.Response) (*models.Event, error) {
 	return event, nil
 }
 
-func (p eventParser) parseId(url string) (int, error) {
+func (p EventParser) parseId(url string) (int, error) {
 	re := regexp.MustCompile(`\d+`)
 	idStr := re.FindString(url)
 
@@ -124,21 +150,21 @@ func (p eventParser) parseId(url string) (int, error) {
 	return id, nil
 }
 
-func (p eventParser) parseName(document *goquery.Document) (string, error) {
+func (p EventParser) parseName(document *goquery.Document) (string, error) {
 	nameTag := document.Find(".event-hub-title")
 
 	return nameTag.Text(), nil
 }
 
-func (p eventParser) parseStartDate(document *goquery.Document) (time.Time, error) {
+func (p EventParser) parseStartDate(document *goquery.Document) (time.Time, error) {
 	return p.parseDate(document, 0)
 }
 
-func (p eventParser) parseEndDate(document *goquery.Document) (time.Time, error) {
+func (p EventParser) parseEndDate(document *goquery.Document) (time.Time, error) {
 	return p.parseDate(document, 2)
 }
 
-func (p eventParser) parseDate(document *goquery.Document, index int) (time.Time, error) {
+func (p EventParser) parseDate(document *goquery.Document, index int) (time.Time, error) {
 	dateTag := document.Find(".eventdate")
 
 	startTag := dateTag.Eq(1).Find("span").Eq(index)
@@ -156,13 +182,13 @@ func (p eventParser) parseDate(document *goquery.Document, index int) (time.Time
 	return time.UnixMilli(unixTime), nil
 }
 
-func (p eventParser) parsePrizePool(document *goquery.Document) (string, error) {
+func (p EventParser) parsePrizePool(document *goquery.Document) (string, error) {
 	prizePoolTag := document.Find(".prizepool").Eq(1)
 
 	return prizePoolTag.Text(), nil
 }
 
-func (p eventParser) parseTeams(document *goquery.Document) ([]string, error) {
+func (p EventParser) parseTeams(document *goquery.Document) ([]string, error) {
 	teamsAttendingTag := document.Find(".teams-attending")
 
 	teamsTags := teamsAttendingTag.Find(".team-name")
@@ -176,7 +202,7 @@ func (p eventParser) parseTeams(document *goquery.Document) ([]string, error) {
 	return teams, nil
 }
 
-func (p eventParser) parseLocation(document *goquery.Document) (string, error) {
+func (p EventParser) parseLocation(document *goquery.Document) (string, error) {
 	locationTag := document.Find(".location").Eq(1).Find(".text-ellipsis")
 
 	return locationTag.Text(), nil

@@ -11,10 +11,10 @@ import (
 
 func TestGetFinishedMatch(t *testing.T) {
 	tests := []struct {
-		Url    string
+		Id     int
 		Result models.Match
 	}{
-		{"https://www.hltv.org/matches/2356303/ence-vs-cloud9-iem-dallas-2022", models.Match{
+		{2356303, models.Match{
 			Id:               2356303,
 			TeamA:            "ENCE",
 			TeamB:            "Cloud9",
@@ -23,7 +23,7 @@ func TestGetFinishedMatch(t *testing.T) {
 			Viewers:          0,
 			PlayerOfTheMatch: "sh1ro",
 		}},
-		{"https://www.hltv.org/matches/2356302/big-vs-cloud9-iem-dallas-2022", models.Match{
+		{2356302, models.Match{
 			Id:               2356302,
 			TeamA:            "BIG",
 			TeamB:            "Cloud9",
@@ -32,7 +32,7 @@ func TestGetFinishedMatch(t *testing.T) {
 			Viewers:          0,
 			PlayerOfTheMatch: "HObbit",
 		}},
-		{"https://www.hltv.org/matches/2356301/ence-vs-furia-iem-dallas-2022", models.Match{
+		{2356301, models.Match{
 			Id:               2356301,
 			TeamA:            "ENCE",
 			TeamB:            "FURIA",
@@ -41,7 +41,7 @@ func TestGetFinishedMatch(t *testing.T) {
 			Viewers:          0,
 			PlayerOfTheMatch: "Snax",
 		}},
-		{"https://www.hltv.org/matches/2356300/faze-vs-cloud9-iem-dallas-2022", models.Match{
+		{2356300, models.Match{
 			Id:               2356300,
 			TeamA:            "FaZe",
 			TeamB:            "Cloud9",
@@ -50,7 +50,7 @@ func TestGetFinishedMatch(t *testing.T) {
 			Viewers:          0,
 			PlayerOfTheMatch: "Ax1le",
 		}},
-		{"https://www.hltv.org/matches/2356298/liquid-vs-cloud9-iem-dallas-2022", models.Match{
+		{2356298, models.Match{
 			Id:               2356298,
 			TeamA:            "Liquid",
 			TeamB:            "Cloud9",
@@ -59,7 +59,7 @@ func TestGetFinishedMatch(t *testing.T) {
 			Viewers:          0,
 			PlayerOfTheMatch: "Ax1le",
 		}},
-		{"https://www.hltv.org/matches/2356296/ence-vs-faze-iem-dallas-2022", models.Match{
+		{2356296, models.Match{
 			Id:               2356296,
 			TeamA:            "ENCE",
 			TeamB:            "FaZe",
@@ -70,15 +70,17 @@ func TestGetFinishedMatch(t *testing.T) {
 		}},
 	}
 
+	p := MatchParser{}
+
 	for _, test := range tests {
-		actual, err := GetMatch(test.Url)
+		actual, err := p.GetMatch(test.Id)
 
 		if err != nil {
-			t.Errorf("Parse Match %s ended with error. Error: %s\n", test.Url, err.Error())
+			t.Errorf("Parse Match %d ended with error. Error: %s\n", test.Id, err.Error())
 		}
 
 		if ok, field := areMatchesEqual(*actual, test.Result); !ok {
-			t.Errorf("Parse Match %s was incorrect. Field: %s\n", test.Url, field)
+			t.Errorf("Parse Match %d was incorrect. Field: %s\n", test.Id, field)
 		}
 	}
 }
@@ -94,8 +96,10 @@ func TestGetIdsByDate(t *testing.T) {
 		{"https://www.hltv.org/results?startDate=2022-06-13&endDate=2022-06-13", []int{2356786, 2356785, 2356834, 2356826, 2356819}},
 	}
 
+	p := MatchParser{}
+
 	for _, test := range tests {
-		ids, err := GetMatchesIdsByDate(test.Url)
+		ids, err := p.getMatchesIdsByDate(test.Url)
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
@@ -119,12 +123,14 @@ func BenchmarkParseMatch(b *testing.B) {
 	response, _ := sendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
+	p := MatchParser{}
+
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := parseMatchResponseAndId(url, response)
+		_, err := p.parseMatchResponseAndId(url, response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseMatch. Error: %v\n", err.Error())

@@ -11,10 +11,10 @@ import (
 
 func TestGetFinishedEvent(t *testing.T) {
 	tests := []struct {
-		Url    string
+		Id     int
 		Result models.Event
 	}{
-		{"https://www.hltv.org/events/6138/iem-dallas-2022", models.Event{
+		{6138, models.Event{
 			Id:        6138,
 			Name:      "IEM Dallas 2022",
 			StartDate: time.UnixMilli(1653904800000),
@@ -26,7 +26,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			},
 			Location: "Dallas, TX, United States",
 		}},
-		{"https://www.hltv.org/events/6372/pgl-major-antwerp-2022", models.Event{
+		{6372, models.Event{
 			Id:        6372,
 			Name:      "PGL Major Antwerp 2022",
 			StartDate: time.UnixMilli(1652522400000),
@@ -39,7 +39,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			},
 			Location: "Antwerp, Belgium",
 		}},
-		{"https://www.hltv.org/events/6344/blast-premier-spring-showdown-2022-europe", models.Event{
+		{6344, models.Event{
 			Id:        6344,
 			Name:      "Blast Premier Spring Showdown 2022 Europe",
 			StartDate: time.UnixMilli(1651053600000),
@@ -50,7 +50,7 @@ func TestGetFinishedEvent(t *testing.T) {
 			},
 			Location: "Europe (Online)",
 		}},
-		{"https://www.hltv.org/events/6137/esl-pro-league-season-15", models.Event{
+		{6137, models.Event{
 			Id:        6137,
 			Name:      "ESL Pro League Season 15",
 			StartDate: time.UnixMilli(1646823600000),
@@ -64,14 +64,16 @@ func TestGetFinishedEvent(t *testing.T) {
 		}},
 	}
 
+	p := EventParser{}
+
 	for _, test := range tests {
-		event, err := GetEvent(test.Url)
+		event, err := p.GetEvent(test.Id)
 		if err != nil {
-			t.Errorf("Parse Event %s ended with error. Error: %s\n", test.Url, err.Error())
+			t.Errorf("Parse Event %d ended with error. Error: %s\n", test.Id, err.Error())
 		}
 
 		if ok, field := areEventsEqual(test.Result, *event); !ok {
-			t.Errorf("Parse Event %s ended with error. Field: %s\n", test.Url, field)
+			t.Errorf("Parse Event %d ended with error. Field: %s\n", test.Id, field)
 		}
 	}
 }
@@ -81,12 +83,14 @@ func BenchmarkParseEvent(b *testing.B) {
 	response, _ := sendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
+	p := EventParser{}
+
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := parseEventResponseAndId(url, response)
+		_, err := p.parseEventResponseAndId(url, response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseEvent. Error: %v\n", err.Error())

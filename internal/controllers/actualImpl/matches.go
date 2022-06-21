@@ -2,9 +2,7 @@ package actualImpl
 
 import (
 	"hltvapi/internal/controllers"
-	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
-	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"strconv"
 
@@ -29,11 +27,9 @@ func (c MatchesController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	urlBuilder := urlBuilder.NewUrlBuilder()
-	urlBuilder.Match()
-	urlBuilder.AddId(id)
+	parser := parsers.MatchParser{}
 
-	event, err := parsers.GetMatch(urlBuilder.String())
+	event, err := parser.GetMatch(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -48,55 +44,23 @@ func (c MatchesController) GetByDate(ctx *gin.Context) {
 		return
 	}
 
-	url := urlBuilder.NewUrlBuilder()
-	url.Results()
-	url.AddParam("startDate", startDate)
-	url.AddParam("endDate", startDate)
+	parser := parsers.MatchParser{}
+	matches, err := parser.GetMatchesByDate(startDate)
 
-	matchesIds, err := parsers.GetMatchesIdsByDate(url.String())
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
-	}
-
-	matches := make([]models.Match, len(matchesIds))
-	for i, id := range matchesIds {
-		url = urlBuilder.NewUrlBuilder()
-		url.Match()
-		url.AddId(id)
-
-		match, err := parsers.GetMatch(url.String())
-		if err != nil {
-			continue
-		}
-		matches[i] = *match
 	}
 
 	ctx.JSON(http.StatusOK, matches)
 }
 
 func (c MatchesController) GetAll(ctx *gin.Context) {
-	url := urlBuilder.NewUrlBuilder()
-	url.Match()
-	matchesListLink := url.String()
+	parser := parsers.MatchParser{}
 
-	upcomingMatchesIds, err := parsers.GetUpcomingMatchesIds(matchesListLink)
+	matches, err := parser.GetMatches()
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-	}
-
-	matches := make([]models.Match, len(upcomingMatchesIds))
-	for i, id := range upcomingMatchesIds {
-		matchUrl := urlBuilder.NewUrlBuilder()
-		matchUrl.Match()
-		matchUrl.AddId(id)
-
-		match, err := parsers.GetMatch(matchUrl.String())
-		if err != nil {
-			controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-		}
-
-		matches[i] = *match
 	}
 
 	ctx.JSON(http.StatusOK, matches)

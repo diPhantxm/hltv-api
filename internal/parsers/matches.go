@@ -3,6 +3,7 @@ package parsers
 import (
 	"errors"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -12,7 +13,71 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetUpcomingMatchesIds(url string) ([]int, error) {
+type MatchParser struct {
+}
+
+func (p MatchParser) GetMatch(id int) (*models.Match, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Match()
+	url.AddId(id)
+
+	response, err := sendRequest(url.String())
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	return p.parseMatchResponseAndId(url.String(), response)
+}
+
+func (p MatchParser) GetMatches() ([]models.Match, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Match()
+	matchesListLink := url.String()
+
+	ids, err := p.getUpcomingMatchesIds(matchesListLink)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Match, len(ids))
+	for i, id := range ids {
+		match, err := p.GetMatch(id)
+		if err != nil {
+			continue
+		}
+
+		result[i] = *match
+	}
+
+	return result, nil
+}
+
+func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Results()
+	url.AddParam("startDate", date)
+	url.AddParam("endDate", date)
+
+	ids, err := p.getMatchesIdsByDate(url.String())
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Match, len(ids))
+	for i, id := range ids {
+		match, err := p.GetMatch(id)
+		if err != nil {
+			continue
+		}
+
+		result[i] = *match
+	}
+
+	return result, nil
+}
+
+func (p MatchParser) getUpcomingMatchesIds(url string) ([]int, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
@@ -45,7 +110,7 @@ func GetUpcomingMatchesIds(url string) ([]int, error) {
 	return ids, nil
 }
 
-func GetMatchesIdsByDate(url string) ([]int, error) {
+func (p MatchParser) getMatchesIdsByDate(url string) ([]int, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
@@ -77,18 +142,7 @@ func GetMatchesIdsByDate(url string) ([]int, error) {
 	return ids, nil
 }
 
-func GetMatch(url string) (*models.Match, error) {
-	response, err := sendRequest(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	return parseMatchResponseAndId(url, response)
-}
-
-func parseMatchResponseAndId(url string, response *http.Response) (*models.Match, error) {
-	p := matchParser{}
+func (p MatchParser) parseMatchResponseAndId(url string, response *http.Response) (*models.Match, error) {
 	match, err := p.parse(response)
 	if err != nil {
 		return nil, err
@@ -99,10 +153,7 @@ func parseMatchResponseAndId(url string, response *http.Response) (*models.Match
 	return match, nil
 }
 
-type matchParser struct {
-}
-
-func (p matchParser) parse(response *http.Response) (*models.Match, error) {
+func (p MatchParser) parse(response *http.Response) (*models.Match, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err
@@ -146,7 +197,7 @@ func (p matchParser) parse(response *http.Response) (*models.Match, error) {
 	return match, nil
 }
 
-func (p matchParser) parseId(url string) int {
+func (p MatchParser) parseId(url string) int {
 	re := regexp.MustCompile(`\d+`)
 	idStr := re.FindString(url)
 
@@ -155,7 +206,7 @@ func (p matchParser) parseId(url string) int {
 	return id
 }
 
-func (p matchParser) parseTeamNames(document *goquery.Document) (teamA, teamB string, err error) {
+func (p MatchParser) parseTeamNames(document *goquery.Document) (teamA, teamB string, err error) {
 	teamNames := document.Find(".teamName")
 	if teamNames == nil {
 		return "", "", errors.New("teams were not found on page")
@@ -167,7 +218,7 @@ func (p matchParser) parseTeamNames(document *goquery.Document) (teamA, teamB st
 	return teamA, teamB, nil
 }
 
-func (p matchParser) parseStartTime(document *goquery.Document) (time.Time, error) {
+func (p MatchParser) parseStartTime(document *goquery.Document) (time.Time, error) {
 	unixTimeTag := document.Find(".time")
 
 	if unixTimeTag == nil {
@@ -188,7 +239,7 @@ func (p matchParser) parseStartTime(document *goquery.Document) (time.Time, erro
 	return t, nil
 }
 
-func (p matchParser) parseMaps(document *goquery.Document) ([]string, error) {
+func (p MatchParser) parseMaps(document *goquery.Document) ([]string, error) {
 	maps := []string{}
 	mapTags := document.Find(".mapholder").Find(".mapname")
 
@@ -203,7 +254,7 @@ func (p matchParser) parseMaps(document *goquery.Document) ([]string, error) {
 	return maps, nil
 }
 
-func (p matchParser) parseViewers(document *goquery.Document) (int, error) {
+func (p MatchParser) parseViewers(document *goquery.Document) (int, error) {
 	viewersTags := document.Find(".viewers")
 	if viewersTags == nil {
 		return 0, nil
@@ -222,7 +273,7 @@ func (p matchParser) parseViewers(document *goquery.Document) (int, error) {
 }
 
 // Parse Player of The Match
-func (p matchParser) parsePotm(document *goquery.Document) (string, error) {
+func (p MatchParser) parsePotm(document *goquery.Document) (string, error) {
 	potmTag := document.Find(".potm-container")
 
 	if potmTag == nil {

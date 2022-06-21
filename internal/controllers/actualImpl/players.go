@@ -2,9 +2,7 @@ package actualImpl
 
 import (
 	"hltvapi/internal/controllers"
-	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
-	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"strconv"
 
@@ -29,11 +27,9 @@ func (c PlayersController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	urlBuilder := urlBuilder.NewUrlBuilder()
-	urlBuilder.Player()
-	urlBuilder.AddId(id)
+	parser := parsers.PlayerParser{}
 
-	event, err := parsers.GetPlayer(urlBuilder.String())
+	event, err := parser.GetPlayer(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -42,27 +38,11 @@ func (c PlayersController) GetById(ctx *gin.Context) {
 }
 
 func (c PlayersController) GetAll(ctx *gin.Context) {
-	url := urlBuilder.NewUrlBuilder()
-	url.PlayersStats()
-	playersStatsList := url.String()
+	parser := parsers.PlayerParser{}
 
-	playersIds, err := parsers.GetAllPlayersIds(playersStatsList)
+	players, err := parser.GetPlayers()
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-	}
-
-	players := make([]models.Player, len(playersIds))
-	for i, id := range playersIds {
-		playerUrl := urlBuilder.NewUrlBuilder()
-		playerUrl.Player()
-		playerUrl.AddId(id)
-
-		player, err := parsers.GetPlayer(playerUrl.String())
-		if err != nil {
-			controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-		}
-
-		players[i] = *player
 	}
 
 	ctx.JSON(http.StatusOK, players)

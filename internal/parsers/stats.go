@@ -9,22 +9,20 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetStats(url string) (*models.Statistics, error) {
+type StatsParser struct {
+}
+
+func (p StatsParser) GetStats(url string) (*models.Statistics, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	p := statsParser{}
-
 	return p.parse(response)
 }
 
-type statsParser struct {
-}
-
-func (p statsParser) parse(response *http.Response) (*models.Statistics, error) {
+func (p StatsParser) parse(response *http.Response) (*models.Statistics, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err

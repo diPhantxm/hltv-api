@@ -2,9 +2,7 @@ package actualImpl
 
 import (
 	"hltvapi/internal/controllers"
-	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
-	"hltvapi/internal/urlBuilder"
 	"net/http"
 	"strconv"
 
@@ -29,11 +27,8 @@ func (c TeamsController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	urlBuilder := urlBuilder.NewUrlBuilder()
-	urlBuilder.Team()
-	urlBuilder.AddId(id)
-
-	event, err := parsers.GetTeam(urlBuilder.String())
+	parser := parsers.TeamParser{}
+	event, err := parser.GetTeam(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -42,27 +37,11 @@ func (c TeamsController) GetById(ctx *gin.Context) {
 }
 
 func (c TeamsController) GetAll(ctx *gin.Context) {
-	url := urlBuilder.NewUrlBuilder()
-	url.TeamsStats()
-	teamsStatsList := url.String()
+	parser := parsers.TeamParser{}
+	teams, err := parser.GetTeams()
 
-	teamsIds, err := parsers.GetAllTeamsIds(teamsStatsList)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-	}
-
-	teams := make([]models.Team, len(teamsIds))
-	for i, id := range teamsIds {
-		teamUrl := urlBuilder.NewUrlBuilder()
-		teamUrl.Team()
-		teamUrl.AddId(id)
-
-		team, err := parsers.GetTeam(teamUrl.String())
-		if err != nil {
-			controllers.Error(ctx, http.StatusInternalServerError, err.Error())
-		}
-
-		teams[i] = *team
 	}
 
 	ctx.JSON(http.StatusOK, teams)

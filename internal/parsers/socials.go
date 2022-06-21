@@ -8,21 +8,19 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetSocials(url string) ([]models.Social, error) {
+type SocialParser struct {
+}
+
+func (p SocialParser) GetSocials(url string) ([]models.Social, error) {
 	response, err := sendRequest(url)
 	if err != nil {
 		return nil, err
 	}
 
-	p := socialParser{}
 	return p.parse(response)
 }
 
-type socialParser struct {
-}
-
-// TODO: somehow get social names
-func (p socialParser) parse(response *http.Response) ([]models.Social, error) {
+func (p SocialParser) parse(response *http.Response) ([]models.Social, error) {
 	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
 		return nil, err
