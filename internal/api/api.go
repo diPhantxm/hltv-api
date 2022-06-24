@@ -28,10 +28,10 @@ func NewApi(config Config, strategy controllers.ControllersStrategy) *Api {
 }
 
 func (a *Api) Run() {
-	a.teamsController.Run()
-	a.playersController.Run()
-	a.matchesController.Run()
-	a.eventsController.Run()
+	go a.teamsController.Run()
+	go a.playersController.Run()
+	go a.matchesController.Run()
+	go a.eventsController.Run()
 
 	a.configureRoutes()
 

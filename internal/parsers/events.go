@@ -31,11 +31,7 @@ func (p EventParser) GetEvent(id int) (*models.Event, error) {
 }
 
 func (p EventParser) GetEvents() ([]models.Event, error) {
-	url := urlBuilder.NewUrlBuilder()
-	url.Event()
-	eventsListLink := url.String()
-
-	ids, err := p.getUpcomingEventsIds(eventsListLink)
+	ids, err := p.GetUpcomingEventsIds()
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +49,11 @@ func (p EventParser) GetEvents() ([]models.Event, error) {
 	return result, nil
 }
 
-func (p EventParser) getUpcomingEventsIds(url string) ([]int, error) {
-	response, err := sendRequest(url)
+func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Event()
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

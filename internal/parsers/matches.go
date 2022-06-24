@@ -31,11 +31,7 @@ func (p MatchParser) GetMatch(id int) (*models.Match, error) {
 }
 
 func (p MatchParser) GetMatches() ([]models.Match, error) {
-	url := urlBuilder.NewUrlBuilder()
-	url.Match()
-	matchesListLink := url.String()
-
-	ids, err := p.getUpcomingMatchesIds(matchesListLink)
+	ids, err := p.GetUpcomingMatchesIds()
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +73,11 @@ func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
 	return result, nil
 }
 
-func (p MatchParser) getUpcomingMatchesIds(url string) ([]int, error) {
-	response, err := sendRequest(url)
+func (p MatchParser) GetUpcomingMatchesIds() ([]int, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.Match()
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

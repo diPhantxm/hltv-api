@@ -29,11 +29,7 @@ func (p TeamParser) GetTeam(id int) (*models.Team, error) {
 }
 
 func (p TeamParser) GetTeams() ([]models.Team, error) {
-	url := urlBuilder.NewUrlBuilder()
-	url.TeamsStats()
-	teamsStatsList := url.String()
-
-	ids, err := p.getAllTeamsIds(teamsStatsList)
+	ids, err := p.GetAllTeamsIds()
 	if err != nil {
 		return nil, err
 	}
@@ -51,8 +47,11 @@ func (p TeamParser) GetTeams() ([]models.Team, error) {
 	return result, nil
 }
 
-func (p TeamParser) getAllTeamsIds(url string) ([]int, error) {
-	response, err := sendRequest(url)
+func (p TeamParser) GetAllTeamsIds() ([]int, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.TeamsStats()
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

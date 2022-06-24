@@ -30,11 +30,7 @@ func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
 }
 
 func (p PlayerParser) GetPlayers() ([]models.Player, error) {
-	url := urlBuilder.NewUrlBuilder()
-	url.PlayersStats()
-	playersStatsList := url.String()
-
-	ids, err := p.getAllPlayersIds(playersStatsList)
+	ids, err := p.GetAllPlayersIds()
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +48,11 @@ func (p PlayerParser) GetPlayers() ([]models.Player, error) {
 	return result, nil
 }
 
-func (p PlayerParser) getAllPlayersIds(url string) ([]int, error) {
-	response, err := sendRequest(url)
+func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
+	url := urlBuilder.NewUrlBuilder()
+	url.PlayersStats()
+
+	response, err := sendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
