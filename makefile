@@ -1,9 +1,9 @@
 .PHONY: build
 build:
-	go build -v -o ./bin/ ./cmd/main.go
+	go build -v -o ./bin/ ./cmd/app/main.go
 
 run:
-	go run -v ./cmd/main.go
+	go run -v ./cmd/app/main.go
 
 test:
 	go test ./...

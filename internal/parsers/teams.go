@@ -19,7 +19,7 @@ func (p TeamParser) GetTeam(id int) (*models.Team, error) {
 	url.Team()
 	url.AddId(id)
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (p TeamParser) GetAllTeamsIds() ([]int, error) {
 	url := urlBuilder.NewUrlBuilder()
 	url.TeamsStats()
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

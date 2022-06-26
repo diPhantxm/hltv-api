@@ -13,7 +13,7 @@ type StatsParser struct {
 }
 
 func (p StatsParser) GetStats(url string) (*models.Statistics, error) {
-	response, err := sendRequest(url)
+	response, err := SendRequest(url)
 	if err != nil {
 		return nil, err
 	}

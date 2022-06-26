@@ -20,7 +20,7 @@ func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
 	url.Player()
 	url.AddId(id)
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
 	url := urlBuilder.NewUrlBuilder()
 	url.PlayersStats()
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

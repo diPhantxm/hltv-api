@@ -21,7 +21,7 @@ func (p EventParser) GetEvent(id int) (*models.Event, error) {
 	url.Event()
 	url.AddId(id)
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
 	url := urlBuilder.NewUrlBuilder()
 	url.Event()
 
-	response, err := sendRequest(url.String())
+	response, err := SendRequest(url.String())
 	if err != nil {
 		return nil, err
 	}

@@ -51,7 +51,7 @@ func TestGetTeam(t *testing.T) {
 
 func BenchmarkParseTeam(b *testing.B) {
 	const url = "https://www.hltv.org/team/5752/cloud9"
-	response, _ := sendRequest(url)
+	response, _ := SendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
 	p := TeamParser{}

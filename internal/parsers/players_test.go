@@ -73,7 +73,7 @@ func TestGetPlayer(t *testing.T) {
 
 func BenchmarkParsePlayer(b *testing.B) {
 	const url = "https://www.hltv.org/player/8528/hobbit"
-	response, _ := sendRequest(url)
+	response, _ := SendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
 	p := PlayerParser{}

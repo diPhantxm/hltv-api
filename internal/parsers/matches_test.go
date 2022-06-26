@@ -120,7 +120,7 @@ func TestGetIdsByDate(t *testing.T) {
 
 func BenchmarkParseMatch(b *testing.B) {
 	const url = "https://www.hltv.org/matches/2356673/nip-vs-nasr-global-esports-tour-dubai-2022"
-	response, _ := sendRequest(url)
+	response, _ := SendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
 	p := MatchParser{}

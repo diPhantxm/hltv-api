@@ -12,7 +12,7 @@ type SocialParser struct {
 }
 
 func (p SocialParser) GetSocials(url string) ([]models.Social, error) {
-	response, err := sendRequest(url)
+	response, err := SendRequest(url)
 	if err != nil {
 		return nil, err
 	}

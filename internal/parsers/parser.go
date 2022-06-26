@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func sendRequest(url string) (*http.Response, error) {
+func SendRequest(url string) (*http.Response, error) {
 	client := &http.Client{}
 
 	request, _ := http.NewRequest("GET", url, nil)

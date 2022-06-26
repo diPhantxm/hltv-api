@@ -14,14 +14,16 @@ var (
 		"params",
 	}
 
-	baseUrl      = `https://hltv.org/`
-	matchUrl     = `matches/`
-	eventUrl     = `events/`
-	playerUrl    = `player/`
-	teamUrl      = `team/`
-	playersStats = `stats/players/`
-	teamsStats   = `stats/teams/`
-	resultsUrl   = `results/`
+	baseUrl         = `https://hltv.org/`
+	matchUrl        = `matches/`
+	eventUrl        = `events/`
+	playerUrl       = `player/`
+	teamUrl         = `team/`
+	playersStats    = `stats/players/`
+	teamsStats      = `stats/teams/`
+	resultsUrl      = `results/`
+	finishedEvents  = `events/archive/`
+	finishedMatches = `results/`
 )
 
 type UrlBuilder struct {
@@ -56,6 +58,14 @@ func (b *UrlBuilder) Player() {
 
 func (b *UrlBuilder) Team() {
 	b.url["group"] = teamUrl
+}
+
+func (b *UrlBuilder) FinishedEvents() {
+	b.url["group"] = finishedEvents
+}
+
+func (b *UrlBuilder) FinishedMatches() {
+	b.url["group"] = finishedMatches
 }
 
 func (b *UrlBuilder) AddId(id int) {

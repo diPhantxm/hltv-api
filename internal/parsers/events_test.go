@@ -80,7 +80,7 @@ func TestGetFinishedEvent(t *testing.T) {
 
 func BenchmarkParseEvent(b *testing.B) {
 	const url = "https://www.hltv.org/events/6587/global-esports-tour-dubai-2022"
-	response, _ := sendRequest(url)
+	response, _ := SendRequest(url)
 	body, _ := ioutil.ReadAll(response.Body)
 
 	p := EventParser{}
