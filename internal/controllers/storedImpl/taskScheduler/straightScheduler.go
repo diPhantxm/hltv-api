@@ -1,10 +1,12 @@
 package taskScheduler
 
 import (
+	"sync"
 	"time"
 )
 
 type straightScheduler struct {
+	mutex    sync.Mutex
 	Interval time.Duration
 	tasks    []Task
 }
@@ -30,7 +32,9 @@ func GetStraightScheduler() *straightScheduler {
 }
 
 func (s *straightScheduler) Add(task func(...interface{}), params ...interface{}) {
+	s.mutex.Lock()
 	s.tasks = append(s.tasks, NewTask(task, params))
+	s.mutex.Unlock()
 }
 
 func (s *straightScheduler) IsEmpty() bool {
