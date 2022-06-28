@@ -6,6 +6,7 @@ import (
 	"hltvapi/internal/controllers/storedImpl/taskScheduler"
 	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,12 +15,14 @@ import (
 )
 
 type PlayersController struct {
-	store *store.Store
+	store  *store.Store
+	parser *parsers.PlayerParser
 }
 
 func NewPlayersController(store *store.Store) *PlayersController {
 	return &PlayersController{
-		store: store,
+		store:  store,
+		parser: parsers.NewPlayerParser(httpUrlBuilder.NewHttpUrlBuilder()),
 	}
 }
 
@@ -58,9 +61,8 @@ func (c PlayersController) GetById(ctx *gin.Context) {
 }
 
 func (c PlayersController) Run() {
-	p := parsers.PlayerParser{}
 	for {
-		ids, err := p.GetAllPlayersIds()
+		ids, err := c.parser.GetAllPlayersIds()
 		if err != nil {
 			continue
 		}
@@ -76,9 +78,7 @@ func (c PlayersController) Run() {
 func (c PlayersController) poll(params ...interface{}) {
 	id := params[0].([]interface{})[0].(int)
 
-	p := parsers.PlayerParser{}
-
-	player, err := p.GetPlayer(id)
+	player, err := c.parser.GetPlayer(id)
 	if err != nil {
 		return
 	}

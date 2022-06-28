@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -13,10 +13,17 @@ import (
 )
 
 type PlayerParser struct {
+	builder urlBuilder.UrlBuilder
+}
+
+func NewPlayerParser(builder urlBuilder.UrlBuilder) *PlayerParser {
+	return &PlayerParser{
+		builder: builder,
+	}
 }
 
 func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Player()
 	url.AddId(id)
 
@@ -26,7 +33,28 @@ func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
 	}
 	defer response.Body.Close()
 
-	return p.parsePlayerResponseAndId(url.String(), response)
+	player, err := p.parsePlayerResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	player.Id = id
+
+	statsParser := StatsParser{}
+	stats, err := statsParser.GetStats(url.String())
+	if err != nil {
+		return nil, err
+	}
+	player.Stats = *stats
+
+	socialParser := SocialParser{}
+	socials, err := socialParser.GetSocials(url.String())
+	if err != nil {
+		return nil, err
+	}
+	player.Social = socials
+
+	return player, nil
 }
 
 func (p PlayerParser) GetPlayers() ([]models.Player, error) {
@@ -49,7 +77,7 @@ func (p PlayerParser) GetPlayers() ([]models.Player, error) {
 }
 
 func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.PlayersStats()
 
 	response, err := SendRequest(url.String())
@@ -84,41 +112,13 @@ func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
 	return ids, nil
 }
 
-func (p PlayerParser) parsePlayerResponseAndId(url string, response *http.Response) (*models.Player, error) {
+func (p PlayerParser) parsePlayerResponse(response *http.Response) (*models.Player, error) {
 	player, err := p.parse(response)
 	if err != nil {
 		return nil, err
 	}
 
-	player.Id, err = p.parseId(url)
-	if err != nil {
-		return nil, err
-	}
-
-	statsParser := StatsParser{}
-	stats, err := statsParser.GetStats(url)
-	if err != nil {
-		return nil, err
-	}
-	player.Stats = *stats
-
-	socialParser := SocialParser{}
-	socials, err := socialParser.GetSocials(url)
-	if err != nil {
-		return nil, err
-	}
-	player.Social = socials
-
 	return player, nil
-}
-
-func (p PlayerParser) parseId(url string) (int, error) {
-	re := regexp.MustCompile(`\d+`)
-	idStr := re.FindString(url)
-
-	id, _ := strconv.Atoi(idStr)
-
-	return id, nil
 }
 
 func (p PlayerParser) parse(response *http.Response) (*models.Player, error) {

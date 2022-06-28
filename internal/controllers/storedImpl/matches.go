@@ -6,6 +6,7 @@ import (
 	"hltvapi/internal/controllers/storedImpl/taskScheduler"
 	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,12 +15,14 @@ import (
 )
 
 type MatchesController struct {
-	store *store.Store
+	store  *store.Store
+	parser *parsers.MatchParser
 }
 
 func NewMatchesController(store *store.Store) *MatchesController {
 	return &MatchesController{
-		store: store,
+		store:  store,
+		parser: parsers.NewMatchParser(httpUrlBuilder.NewHttpUrlBuilder()),
 	}
 }
 
@@ -80,9 +83,8 @@ func (c MatchesController) GetAll(ctx *gin.Context) {
 }
 
 func (c MatchesController) Run() {
-	p := parsers.MatchParser{}
 	for {
-		ids, err := p.GetUpcomingMatchesIds()
+		ids, err := c.parser.GetUpcomingMatchesIds()
 		if err != nil {
 			continue
 		}
@@ -98,9 +100,7 @@ func (c MatchesController) Run() {
 func (c MatchesController) poll(params ...interface{}) {
 	id := params[0].([]interface{})[0].(int)
 
-	p := parsers.MatchParser{}
-
-	match, err := p.GetMatch(id)
+	match, err := c.parser.GetMatch(id)
 	if err != nil {
 		return
 	}

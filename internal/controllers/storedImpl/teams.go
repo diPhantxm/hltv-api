@@ -6,6 +6,7 @@ import (
 	"hltvapi/internal/controllers/storedImpl/taskScheduler"
 	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,12 +15,14 @@ import (
 )
 
 type TeamsController struct {
-	store *store.Store
+	store  *store.Store
+	parser *parsers.TeamParser
 }
 
 func NewTeamsController(store *store.Store) *TeamsController {
 	return &TeamsController{
-		store: store,
+		store:  store,
+		parser: parsers.NewTeamParser(httpUrlBuilder.NewHttpUrlBuilder()),
 	}
 }
 
@@ -58,9 +61,8 @@ func (c TeamsController) GetById(ctx *gin.Context) {
 }
 
 func (c TeamsController) Run() {
-	p := parsers.TeamParser{}
 	for {
-		ids, err := p.GetAllTeamsIds()
+		ids, err := c.parser.GetAllTeamsIds()
 		if err != nil {
 			continue
 		}
@@ -76,9 +78,7 @@ func (c TeamsController) Run() {
 func (c TeamsController) poll(params ...interface{}) {
 	id := params[0].([]interface{})[0].(int)
 
-	p := parsers.TeamParser{}
-
-	team, err := p.GetTeam(id)
+	team, err := c.parser.GetTeam(id)
 	if err != nil {
 		return
 	}

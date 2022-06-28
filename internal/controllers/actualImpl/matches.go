@@ -3,6 +3,7 @@ package actualImpl
 import (
 	"hltvapi/internal/controllers"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,13 @@ import (
 )
 
 type MatchesController struct {
+	parser *parsers.MatchParser
+}
+
+func NewMatchesController() *MatchesController {
+	return &MatchesController{
+		parser: parsers.NewMatchParser(httpUrlBuilder.NewHttpUrlBuilder()),
+	}
 }
 
 func (c MatchesController) Run() {
@@ -27,9 +35,7 @@ func (c MatchesController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	parser := parsers.MatchParser{}
-
-	event, err := parser.GetMatch(id)
+	event, err := c.parser.GetMatch(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -44,8 +50,7 @@ func (c MatchesController) GetByDate(ctx *gin.Context) {
 		return
 	}
 
-	parser := parsers.MatchParser{}
-	matches, err := parser.GetMatchesByDate(startDate)
+	matches, err := c.parser.GetMatchesByDate(startDate)
 
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
@@ -56,9 +61,7 @@ func (c MatchesController) GetByDate(ctx *gin.Context) {
 }
 
 func (c MatchesController) GetAll(ctx *gin.Context) {
-	parser := parsers.MatchParser{}
-
-	matches, err := parser.GetMatches()
+	matches, err := c.parser.GetMatches()
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}

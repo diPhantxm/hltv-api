@@ -2,7 +2,7 @@ package finished
 
 import (
 	"hltvapi/internal/parsers"
-	"hltvapi/internal/urlBuilder"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +19,7 @@ func (p FinishedEventParser) GetAllEventsIds() ([]int, error) {
 	offset := 0
 
 	for {
-		url := urlBuilder.NewUrlBuilder()
+		url := httpUrlBuilder.NewHttpUrlBuilder()
 		url.FinishedEvents()
 		url.AddParam("offset", strconv.Itoa(offset))
 

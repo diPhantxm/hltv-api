@@ -3,6 +3,7 @@ package parsers
 import (
 	"bytes"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder/fileUrlBuilder"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -70,17 +71,17 @@ func TestGetFinishedMatch(t *testing.T) {
 		}},
 	}
 
-	p := MatchParser{}
+	p := NewMatchParser(fileUrlBuilder.NewFileUrlBuilder())
 
 	for _, test := range tests {
-		actual, err := p.GetMatch(test.Id)
+		match, err := p.GetMatch(test.Id)
 
 		if err != nil {
-			t.Errorf("Parse Match %d ended with error. Error: %s\n", test.Id, err.Error())
+			t.Errorf("Parse Match %d ended with error. Error: %s\n", test.Result.Id, err.Error())
 		}
 
-		if ok, field := areMatchesEqual(*actual, test.Result); !ok {
-			t.Errorf("Parse Match %d was incorrect. Field: %s\n", test.Id, field)
+		if ok, field := areMatchesEqual(*match, test.Result); !ok {
+			t.Errorf("Parse Match %d was incorrect. Field: %s\n", test.Result.Id, field)
 		}
 	}
 }
@@ -130,7 +131,7 @@ func BenchmarkParseMatch(b *testing.B) {
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := p.parseMatchResponseAndId(url, response)
+		_, err := p.parseMatchResponse(response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseMatch. Error: %v\n", err.Error())

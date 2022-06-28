@@ -3,6 +3,7 @@ package actualImpl
 import (
 	"hltvapi/internal/controllers"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,13 @@ import (
 )
 
 type EventsController struct {
+	parser *parsers.EventParser
+}
+
+func NewEventsController() *EventsController {
+	return &EventsController{
+		parser: parsers.NewEventParser(httpUrlBuilder.NewHttpUrlBuilder()),
+	}
 }
 
 func (c EventsController) Run() {
@@ -27,9 +35,7 @@ func (c EventsController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	parser := parsers.EventParser{}
-
-	event, err := parser.GetEvent(id)
+	event, err := c.parser.GetEvent(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -38,9 +44,7 @@ func (c EventsController) GetById(ctx *gin.Context) {
 }
 
 func (c EventsController) GetAll(ctx *gin.Context) {
-	parser := parsers.EventParser{}
-
-	events, err := parser.GetEvents()
+	events, err := c.parser.GetEvents()
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}

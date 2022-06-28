@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,10 +14,17 @@ import (
 )
 
 type MatchParser struct {
+	builder urlBuilder.UrlBuilder
+}
+
+func NewMatchParser(builder urlBuilder.UrlBuilder) *MatchParser {
+	return &MatchParser{
+		builder: builder,
+	}
 }
 
 func (p MatchParser) GetMatch(id int) (*models.Match, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Match()
 	url.AddId(id)
 
@@ -27,7 +34,14 @@ func (p MatchParser) GetMatch(id int) (*models.Match, error) {
 	}
 	defer response.Body.Close()
 
-	return p.parseMatchResponseAndId(url.String(), response)
+	event, err := p.parseMatchResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	event.Id = id
+
+	return event, nil
 }
 
 func (p MatchParser) GetMatches() ([]models.Match, error) {
@@ -50,7 +64,7 @@ func (p MatchParser) GetMatches() ([]models.Match, error) {
 }
 
 func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Results()
 	url.AddParam("startDate", date)
 	url.AddParam("endDate", date)
@@ -74,7 +88,7 @@ func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
 }
 
 func (p MatchParser) GetUpcomingMatchesIds() ([]int, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Match()
 
 	response, err := SendRequest(url.String())
@@ -141,13 +155,11 @@ func (p MatchParser) getMatchesIdsByDate(url string) ([]int, error) {
 	return ids, nil
 }
 
-func (p MatchParser) parseMatchResponseAndId(url string, response *http.Response) (*models.Match, error) {
+func (p MatchParser) parseMatchResponse(response *http.Response) (*models.Match, error) {
 	match, err := p.parse(response)
 	if err != nil {
 		return nil, err
 	}
-
-	match.Id = p.parseId(url)
 
 	return match, nil
 }
@@ -194,15 +206,6 @@ func (p MatchParser) parse(response *http.Response) (*models.Match, error) {
 	match.PlayerOfTheMatch = potm
 
 	return match, nil
-}
-
-func (p MatchParser) parseId(url string) int {
-	re := regexp.MustCompile(`\d+`)
-	idStr := re.FindString(url)
-
-	id, _ := strconv.Atoi(idStr)
-
-	return id
 }
 
 func (p MatchParser) parseTeamNames(document *goquery.Document) (teamA, teamB string, err error) {

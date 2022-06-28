@@ -6,6 +6,7 @@ import (
 	"hltvapi/internal/controllers/storedImpl/taskScheduler"
 	"hltvapi/internal/models"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,12 +15,14 @@ import (
 )
 
 type EventsController struct {
-	store *store.Store
+	store  *store.Store
+	parser *parsers.EventParser
 }
 
 func NewEventsController(store *store.Store) *EventsController {
 	return &EventsController{
-		store: store,
+		store:  store,
+		parser: parsers.NewEventParser(httpUrlBuilder.NewHttpUrlBuilder()),
 	}
 }
 
@@ -59,10 +62,8 @@ func (c EventsController) GetAll(ctx *gin.Context) {
 }
 
 func (c EventsController) Run() {
-	p := parsers.EventParser{}
-
 	for {
-		ids, err := p.GetUpcomingEventsIds()
+		ids, err := c.parser.GetUpcomingEventsIds()
 		if err != nil {
 			continue
 		}
@@ -78,9 +79,7 @@ func (c EventsController) Run() {
 func (c EventsController) poll(params ...interface{}) {
 	id := params[0].([]interface{})[0].(int)
 
-	p := parsers.EventParser{}
-
-	event, err := p.GetEvent(id)
+	event, err := c.parser.GetEvent(id)
 	if err != nil {
 		return
 	}

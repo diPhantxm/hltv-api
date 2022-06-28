@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,10 +14,17 @@ import (
 )
 
 type EventParser struct {
+	builder urlBuilder.UrlBuilder
+}
+
+func NewEventParser(builder urlBuilder.UrlBuilder) *EventParser {
+	return &EventParser{
+		builder: builder,
+	}
 }
 
 func (p EventParser) GetEvent(id int) (*models.Event, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Event()
 	url.AddId(id)
 
@@ -27,7 +34,14 @@ func (p EventParser) GetEvent(id int) (*models.Event, error) {
 	}
 	defer response.Body.Close()
 
-	return p.parseEventResponseAndId(url.String(), response)
+	event, err := p.parseEventResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	event.Id = id
+
+	return event, nil
 }
 
 func (p EventParser) GetEvents() ([]models.Event, error) {
@@ -50,7 +64,7 @@ func (p EventParser) GetEvents() ([]models.Event, error) {
 }
 
 func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Event()
 
 	response, err := SendRequest(url.String())
@@ -85,13 +99,8 @@ func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
 	return ids, nil
 }
 
-func (p EventParser) parseEventResponseAndId(url string, response *http.Response) (*models.Event, error) {
+func (p EventParser) parseEventResponse(response *http.Response) (*models.Event, error) {
 	event, err := p.parse(response)
-	if err != nil {
-		return nil, err
-	}
-
-	event.Id, err = p.parseId(url)
 	if err != nil {
 		return nil, err
 	}
@@ -138,15 +147,6 @@ func (p EventParser) parse(response *http.Response) (*models.Event, error) {
 	}
 
 	return event, nil
-}
-
-func (p EventParser) parseId(url string) (int, error) {
-	re := regexp.MustCompile(`\d+`)
-	idStr := re.FindString(url)
-
-	id, _ := strconv.Atoi(idStr)
-
-	return id, nil
 }
 
 func (p EventParser) parseName(document *goquery.Document) (string, error) {

@@ -3,6 +3,7 @@ package actualImpl
 import (
 	"hltvapi/internal/controllers"
 	"hltvapi/internal/parsers"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
 	"strconv"
 
@@ -10,6 +11,13 @@ import (
 )
 
 type PlayersController struct {
+	parser *parsers.PlayerParser
+}
+
+func NewPlayersController() *PlayersController {
+	return &PlayersController{
+		parser: parsers.NewPlayerParser(httpUrlBuilder.NewHttpUrlBuilder()),
+	}
 }
 
 func (c PlayersController) Run() {
@@ -27,9 +35,7 @@ func (c PlayersController) GetById(ctx *gin.Context) {
 		controllers.Error(ctx, http.StatusBadRequest, "Id cannot be converted to int")
 	}
 
-	parser := parsers.PlayerParser{}
-
-	event, err := parser.GetPlayer(id)
+	event, err := c.parser.GetPlayer(id)
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}
@@ -38,9 +44,7 @@ func (c PlayersController) GetById(ctx *gin.Context) {
 }
 
 func (c PlayersController) GetAll(ctx *gin.Context) {
-	parser := parsers.PlayerParser{}
-
-	players, err := parser.GetPlayers()
+	players, err := c.parser.GetPlayers()
 	if err != nil {
 		controllers.Error(ctx, http.StatusInternalServerError, err.Error())
 	}

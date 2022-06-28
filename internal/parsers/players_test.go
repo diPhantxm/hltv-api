@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder/fileUrlBuilder"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -23,12 +24,12 @@ func TestGetPlayer(t *testing.T) {
 			LastName:  "Pfeiffer",
 			Country:   "Denmark",
 			Stats: models.Statistics{
-				Rating:            0.98,
-				KillsPerRound:     0.61,
-				Headshots:         46.3,
-				MapsPlayed:        84,
-				DeathsPerRound:    0.66,
-				RoundsContributed: 68.9,
+				Rating:            0.95,
+				KillsPerRound:     0.60,
+				Headshots:         45.0,
+				MapsPlayed:        73,
+				DeathsPerRound:    0.68,
+				RoundsContributed: 68.1,
 			},
 			Social: []models.Social{
 				{Name: "twitter", Link: "https://www.twitter.com/SnappiCSGO"},
@@ -43,12 +44,12 @@ func TestGetPlayer(t *testing.T) {
 			LastName:  "Isaković",
 			Country:   "Serbia",
 			Stats: models.Statistics{
-				Rating:            1.04,
+				Rating:            1.01,
 				KillsPerRound:     0.66,
-				Headshots:         48.6,
-				MapsPlayed:        12,
-				DeathsPerRound:    0.65,
-				RoundsContributed: 70.4,
+				Headshots:         49.1,
+				MapsPlayed:        29,
+				DeathsPerRound:    0.68,
+				RoundsContributed: 69.0,
 			},
 			Social: []models.Social{
 				{Name: "twitter", Link: "https://www.twitter.com/nexaOG"},
@@ -56,7 +57,7 @@ func TestGetPlayer(t *testing.T) {
 		}},
 	}
 
-	p := PlayerParser{}
+	p := NewPlayerParser(fileUrlBuilder.NewFileUrlBuilder())
 
 	for _, test := range tests {
 		player, err := p.GetPlayer(test.Id)
@@ -83,7 +84,7 @@ func BenchmarkParsePlayer(b *testing.B) {
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := p.parsePlayerResponseAndId(url, response)
+		_, err := p.parsePlayerResponse(response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParsePlayer. Error: %v\n", err.Error())

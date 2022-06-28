@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder/fileUrlBuilder"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -16,9 +17,9 @@ func TestGetTeam(t *testing.T) {
 	}{
 		{4869, models.Team{
 			Id:           4869,
-			Ranking:      2,
-			WeeksInTop30: 64,
-			AverageAge:   24.9,
+			Ranking:      3,
+			WeeksInTop30: 67,
+			AverageAge:   25.0,
 			Name:         "ence",
 			Country:      "europe",
 			Social: []models.Social{
@@ -34,7 +35,7 @@ func TestGetTeam(t *testing.T) {
 		}},
 	}
 
-	p := TeamParser{}
+	p := NewTeamParser(fileUrlBuilder.NewFileUrlBuilder())
 
 	for _, test := range tests {
 		team, err := p.GetTeam(test.Id)
@@ -61,7 +62,7 @@ func BenchmarkParseTeam(b *testing.B) {
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := p.parseTeamResponseAndId(url, response)
+		_, err := p.parseTeamResponse(response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseTeam. Error: %v\n", err.Error())

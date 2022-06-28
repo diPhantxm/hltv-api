@@ -3,13 +3,14 @@ package parsers
 import (
 	"bytes"
 	"hltvapi/internal/models"
+	"hltvapi/internal/urlBuilder/fileUrlBuilder"
 	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
 )
 
-func TestGetFinishedEvent(t *testing.T) {
+func TestGetEvent(t *testing.T) {
 	tests := []struct {
 		Id     int
 		Result models.Event
@@ -57,23 +58,47 @@ func TestGetFinishedEvent(t *testing.T) {
 			EndDate:   time.UnixMilli(1649584800000),
 			PrizePool: "$823,000",
 			Teams: []string{
-				"Natus Vincere", "Players", "G2", "FaZe", "Vitality", "Outsiders", "Heroic", "NIP", "Astralis", "BIG", "Entropiq", "MOUZ", "FURIA", "ENCE", "GODSENT", "Sprout", "Movistar Riders",
+				"Natus Vincere", "Players", "G2", "FaZe", "Vitality", "Outsiders", "Heroic", "NIP", "Astralis", "BIG",
+				"Entropiq", "MOUZ", "FURIA", "ENCE", "GODSENT", "Sprout", "Movistar Riders",
 				"Complexity", "Liquid", "Party Astronauts", "Evil Geniuses", "Looking For Org", "AGO", "fnatic",
 			},
 			Location: "Düsseldorf, Germany",
 		}},
+		{6317, models.Event{
+			Id:        6317,
+			Name:      "ESL Challenger Valencia 2022",
+			StartDate: time.UnixMilli(1656669600000),
+			EndDate:   time.UnixMilli(1656842400000),
+			PrizePool: "$100,000",
+			Teams: []string{
+				"FURIA", "Outsiders", "Movistar Riders", "MIBR", "Sprout", "HUMMER", "Rare Atom", "00NATION",
+			},
+			Location: "Valencia, Spain",
+		}},
+		{6140, models.Event{
+			Id:        6140,
+			Name:      "IEM Cologne 2022",
+			StartDate: time.UnixMilli(1657188000000),
+			EndDate:   time.UnixMilli(1658052000000),
+			PrizePool: "$972,000",
+			Teams: []string{
+				"FaZe", "Natus Vincere", "ENCE", "Cloud9", "G2", "FURIA", "NIP", "Liquid", "", "", "", "", "", "", "", "",
+			},
+			Location: "Cologne, Germany",
+		}},
 	}
 
-	p := EventParser{}
+	p := NewEventParser(fileUrlBuilder.NewFileUrlBuilder())
 
 	for _, test := range tests {
 		event, err := p.GetEvent(test.Id)
 		if err != nil {
-			t.Errorf("Parse Event %d ended with error. Error: %s\n", test.Id, err.Error())
+			t.Errorf("Parse Event Error. Error: %s\n", err.Error())
 		}
+		event.Id = test.Result.Id
 
 		if ok, field := areEventsEqual(test.Result, *event); !ok {
-			t.Errorf("Parse Event %d ended with error. Field: %s\n", test.Id, field)
+			t.Errorf("Parse Event %d ended with error. Field: %s\n", test.Result.Id, field)
 		}
 	}
 }
@@ -90,7 +115,7 @@ func BenchmarkParseEvent(b *testing.B) {
 		response.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		b.StartTimer()
 
-		_, err := p.parseEventResponseAndId(url, response)
+		_, err := p.parseEventResponse(response)
 
 		if err != nil {
 			b.Fatalf("Error during benchmarkParseEvent. Error: %v\n", err.Error())

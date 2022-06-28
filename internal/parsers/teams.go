@@ -4,18 +4,26 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
+	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-type TeamParser struct{}
+type TeamParser struct {
+	builder urlBuilder.UrlBuilder
+}
+
+func NewTeamParser(builder urlBuilder.UrlBuilder) *TeamParser {
+	return &TeamParser{
+		builder: builder,
+	}
+}
 
 func (p TeamParser) GetTeam(id int) (*models.Team, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.Team()
 	url.AddId(id)
 
@@ -25,7 +33,21 @@ func (p TeamParser) GetTeam(id int) (*models.Team, error) {
 	}
 	defer response.Body.Close()
 
-	return p.parseTeamResponseAndId(url.String(), response)
+	team, err := p.parseTeamResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	team.Id = id
+
+	socialParser := SocialParser{}
+	socials, err := socialParser.parse(response)
+	if err != nil {
+		return nil, err
+	}
+	team.Social = socials
+
+	return team, nil
 }
 
 func (p TeamParser) GetTeams() ([]models.Team, error) {
@@ -48,7 +70,7 @@ func (p TeamParser) GetTeams() ([]models.Team, error) {
 }
 
 func (p TeamParser) GetAllTeamsIds() ([]int, error) {
-	url := urlBuilder.NewUrlBuilder()
+	url := httpUrlBuilder.NewHttpUrlBuilder()
 	url.TeamsStats()
 
 	response, err := SendRequest(url.String())
@@ -83,31 +105,13 @@ func (p TeamParser) GetAllTeamsIds() ([]int, error) {
 	return ids, nil
 }
 
-func (p TeamParser) parseTeamResponseAndId(url string, response *http.Response) (*models.Team, error) {
+func (p TeamParser) parseTeamResponse(response *http.Response) (*models.Team, error) {
 	team, err := p.parse(response)
 	if err != nil {
 		return nil, err
 	}
 
-	team.Id = p.parseId(url)
-
-	socialParser := SocialParser{}
-	socials, err := socialParser.parse(response)
-	if err != nil {
-		return nil, err
-	}
-	team.Social = socials
-
 	return team, nil
-}
-
-func (p TeamParser) parseId(url string) int {
-	re := regexp.MustCompile(`\d+`)
-	idStr := re.FindString(url)
-
-	id, _ := strconv.Atoi(idStr)
-
-	return id
 }
 
 func (p TeamParser) parse(response *http.Response) (*models.Team, error) {
