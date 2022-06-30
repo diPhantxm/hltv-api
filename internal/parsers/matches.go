@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
-	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -24,11 +24,11 @@ func NewMatchParser(builder urlBuilder.UrlBuilder) *MatchParser {
 }
 
 func (p MatchParser) GetMatch(id int) (*models.Match, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Match()
-	url.AddId(id)
+	p.builder.Clear()
+	p.builder.Match()
+	p.builder.AddId(id)
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +64,12 @@ func (p MatchParser) GetMatches() ([]models.Match, error) {
 }
 
 func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Results()
-	url.AddParam("startDate", date)
-	url.AddParam("endDate", date)
+	p.builder.Clear()
+	p.builder.Results()
+	p.builder.AddParam("startDate", date)
+	p.builder.AddParam("endDate", date)
 
-	ids, err := p.getMatchesIdsByDate(url.String())
+	ids, err := p.getMatchesIdsByDate(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +88,10 @@ func (p MatchParser) GetMatchesByDate(date string) ([]models.Match, error) {
 }
 
 func (p MatchParser) GetUpcomingMatchesIds() ([]int, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Match()
+	p.builder.Clear()
+	p.builder.Match()
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -103,21 +103,26 @@ func (p MatchParser) GetUpcomingMatchesIds() ([]int, error) {
 	}
 
 	matchTags := document.Find(".upcomingMatchesSection")
-	ids := make([]int, matchTags.Length())
+	var ids []int
 
 	matchTags.Each(func(i int, selection *goquery.Selection) {
-		link, ok := selection.Find(".match").Attr("href")
-		if !ok {
-			return
-		}
+		links := selection.Find(".match")
+		links.Each(func(i int, link *goquery.Selection) {
+			href, ok := link.Attr("href")
+			if !ok {
+				return
+			}
 
-		idStr := strings.Split(link, "/")[2]
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			return
-		}
+			re := regexp.MustCompile(`\/\w+\/(\d+)`)
+			idStr := re.FindStringSubmatch(href)[1]
 
-		ids[i] = id
+			id, err := strconv.Atoi(idStr)
+			if err != nil {
+				return
+			}
+
+			ids = append(ids, id)
+		})
 	})
 
 	return ids, nil
@@ -135,7 +140,7 @@ func (p MatchParser) getMatchesIdsByDate(url string) ([]int, error) {
 		return nil, err
 	}
 
-	idTags := document.Find(".results-all").Find("a")
+	idTags := document.Find(".results-holder").Find(".results-all").Find("a")
 	ids := make([]int, idTags.Length())
 
 	idTags.Each(func(i int, selection *goquery.Selection) {
@@ -144,7 +149,10 @@ func (p MatchParser) getMatchesIdsByDate(url string) ([]int, error) {
 			return
 		}
 
-		id, err := strconv.Atoi(strings.Split(link, "/")[2])
+		re := regexp.MustCompile(`\/\w+\/(\d+)`)
+		idStr := re.FindStringSubmatch(link)[1]
+
+		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			return
 		}
@@ -257,7 +265,7 @@ func (p MatchParser) parseMaps(document *goquery.Document) ([]string, error) {
 }
 
 func (p MatchParser) parseViewers(document *goquery.Document) (int, error) {
-	viewersTags := document.Find(".viewers")
+	viewersTags := document.Find(".left-right-padding")
 	if viewersTags == nil {
 		return 0, nil
 	}

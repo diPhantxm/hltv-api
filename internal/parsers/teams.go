@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
-	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -23,11 +23,11 @@ func NewTeamParser(builder urlBuilder.UrlBuilder) *TeamParser {
 }
 
 func (p TeamParser) GetTeam(id int) (*models.Team, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Team()
-	url.AddId(id)
+	p.builder.Clear()
+	p.builder.Team()
+	p.builder.AddId(id)
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -70,10 +70,10 @@ func (p TeamParser) GetTeams() ([]models.Team, error) {
 }
 
 func (p TeamParser) GetAllTeamsIds() ([]int, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.TeamsStats()
+	p.builder.Clear()
+	p.builder.TeamsStats()
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,9 @@ func (p TeamParser) GetAllTeamsIds() ([]int, error) {
 			return
 		}
 
-		idStr := strings.Split(link, "/")[3]
+		re := regexp.MustCompile(`\/\w+\/(\d+)`)
+		idStr := re.FindStringSubmatch(link)[1]
+
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			return

@@ -4,10 +4,9 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
-	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
+	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -24,11 +23,11 @@ func NewEventParser(builder urlBuilder.UrlBuilder) *EventParser {
 }
 
 func (p EventParser) GetEvent(id int) (*models.Event, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Event()
-	url.AddId(id)
+	p.builder.Clear()
+	p.builder.Event()
+	p.builder.AddId(id)
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +63,10 @@ func (p EventParser) GetEvents() ([]models.Event, error) {
 }
 
 func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Event()
+	p.builder.Clear()
+	p.builder.Event()
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -78,22 +77,24 @@ func (p EventParser) GetUpcomingEventsIds() ([]int, error) {
 		return nil, err
 	}
 
-	eventTags := document.Find(".events-holder").Find(".events-month")
-	ids := make([]int, eventTags.Length())
+	eventTags := document.Find(".events-holder").Find(".a-reset")
+	var ids []int
 
 	eventTags.Each(func(i int, selection *goquery.Selection) {
-		link, ok := selection.Find(".a-reset").Attr("href")
+		link, ok := selection.Attr("href")
 		if !ok {
 			return
 		}
 
-		idStr := strings.Split(link, "/")[2]
+		re := regexp.MustCompile(`\/\w+\/(\d+)`)
+		idStr := re.FindStringSubmatch(link)[1]
+
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			return
 		}
 
-		ids[i] = id
+		ids = append(ids, id)
 	})
 
 	return ids, nil

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"hltvapi/internal/models"
 	"hltvapi/internal/urlBuilder"
-	"hltvapi/internal/urlBuilder/httpUrlBuilder"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -23,11 +23,11 @@ func NewPlayerParser(builder urlBuilder.UrlBuilder) *PlayerParser {
 }
 
 func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.Player()
-	url.AddId(id)
+	p.builder.Clear()
+	p.builder.Player()
+	p.builder.AddId(id)
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +41,14 @@ func (p PlayerParser) GetPlayer(id int) (*models.Player, error) {
 	player.Id = id
 
 	statsParser := StatsParser{}
-	stats, err := statsParser.GetStats(url.String())
+	stats, err := statsParser.GetStats(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
 	player.Stats = *stats
 
 	socialParser := SocialParser{}
-	socials, err := socialParser.GetSocials(url.String())
+	socials, err := socialParser.GetSocials(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +77,10 @@ func (p PlayerParser) GetPlayers() ([]models.Player, error) {
 }
 
 func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
-	url := httpUrlBuilder.NewHttpUrlBuilder()
-	url.PlayersStats()
+	p.builder.Clear()
+	p.builder.PlayersStats()
 
-	response, err := SendRequest(url.String())
+	response, err := SendRequest(p.builder.String())
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,9 @@ func (p PlayerParser) GetAllPlayersIds() ([]int, error) {
 			return
 		}
 
-		idStr := strings.Split(link, "/")[3]
+		re := regexp.MustCompile(`\/\w+\/(\d+)`)
+		idStr := re.FindStringSubmatch(link)[1]
+
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			return
