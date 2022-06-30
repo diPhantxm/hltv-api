@@ -20,11 +20,11 @@ var (
 	eventUrl        = `events/`
 	playerUrl       = `players/`
 	teamUrl         = `teams/`
-	playersStats    = `stats/players/`
-	teamsStats      = `stats/teams/`
-	resultsUrl      = `results/`
+	playersStats    = `players/`
+	teamsStats      = `teams/`
+	resultsUrl      = `matches/`
 	finishedEvents  = `events/archive/`
-	finishedMatches = `results/`
+	finishedMatches = `matches/`
 )
 
 type FileUrlBuilder struct {
@@ -82,7 +82,7 @@ func (b *FileUrlBuilder) AddName(name string) {
 }
 
 func (b *FileUrlBuilder) AddParam(param string, value string) {
-	b.url["params"] += fmt.Sprintf("?%s=%s", param, value)
+	b.url["params"] += fmt.Sprintf("%s=%s&", param, value)
 }
 
 func (b *FileUrlBuilder) String() string {
@@ -95,5 +95,17 @@ func (b *FileUrlBuilder) String() string {
 		}
 	}
 
+	_, idOk := b.url["id"]
+	_, paramOk := b.url["params"]
+	if !(idOk || paramOk) {
+		url.WriteString("all")
+	}
+
+	url.WriteString(".html")
+
 	return url.String()
+}
+
+func (b *FileUrlBuilder) Clear() {
+	b.url = make(map[string]string)
 }

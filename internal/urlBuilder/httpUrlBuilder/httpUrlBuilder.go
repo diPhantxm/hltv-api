@@ -106,3 +106,7 @@ func (b *HttpUrlBuilder) String() string {
 
 	return url.String()
 }
+
+func (b *HttpUrlBuilder) Clear() {
+	b.url = make(map[string]string)
+}

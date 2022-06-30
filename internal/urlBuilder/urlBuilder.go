@@ -15,4 +15,5 @@ type UrlBuilder interface {
 	AddParam(param string, value string)
 
 	String() string
+	Clear()
 }
