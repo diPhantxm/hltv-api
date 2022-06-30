@@ -10,12 +10,9 @@ import (
 	"testing"
 )
 
-func TestGetPlayer(t *testing.T) {
-	tests := []struct {
-		Id     int
-		Result models.Player
-	}{
-		{922, models.Player{
+func TestGetAllPlayers(t *testing.T) {
+	tests := []models.Player{
+		{
 			Id:        922,
 			Age:       32,
 			Team:      "ENCE",
@@ -34,8 +31,8 @@ func TestGetPlayer(t *testing.T) {
 			Social: []models.Social{
 				{Name: "twitter", Link: "https://www.twitter.com/SnappiCSGO"},
 			},
-		}},
-		{9618, models.Player{
+		},
+		{
 			Id:        9618,
 			Age:       25,
 			Team:      "OG",
@@ -54,20 +51,115 @@ func TestGetPlayer(t *testing.T) {
 			Social: []models.Social{
 				{Name: "twitter", Link: "https://www.twitter.com/nexaOG"},
 			},
-		}},
+		},
+		{
+			Id:        11893,
+			Age:       21,
+			Team:      "Vitality",
+			Nickname:  "ZyWOo",
+			FirstName: "Mathieu",
+			LastName:  "Herbaut",
+			Country:   "France",
+			Stats: models.Statistics{
+				Rating:            1.26,
+				KillsPerRound:     0.80,
+				Headshots:         38.7,
+				MapsPlayed:        43,
+				DeathsPerRound:    0.59,
+				RoundsContributed: 75.5,
+			},
+			Social: []models.Social{
+				{Name: "twitter", Link: "https://www.twitter.com/zywoo"},
+				{Name: "twitch", Link: "https://www.twitch.tv/cs_zywoo"},
+				{Name: "instagram", Link: "https://www.instagram.com/cs_zywoo"},
+			},
+		},
+		{
+			Id:        7998,
+			Age:       24,
+			Team:      "Natus Vincere",
+			Nickname:  "s1mple",
+			FirstName: "Aleksandr",
+			LastName:  "Kostyliev",
+			Country:   "Ukraine",
+			Stats: models.Statistics{
+				Rating:            1.35,
+				KillsPerRound:     0.88,
+				Headshots:         38.7,
+				MapsPlayed:        46,
+				DeathsPerRound:    0.59,
+				RoundsContributed: 76.1,
+			},
+			Social: []models.Social{
+				{Name: "twitter", Link: "https://www.twitter.com/s1mpleO"},
+				{Name: "twitch", Link: "https://www.twitch.tv/s1mple"},
+				{Name: "instagram", Link: "https://www.instagram.com/s1mpleo"},
+			},
+		},
+		{
+			Id:        17861,
+			Age:       24,
+			Team:      "MIBR",
+			Nickname:  "JOTA",
+			FirstName: "Jhonatan",
+			LastName:  "Willian",
+			Country:   "Brazil",
+			Stats: models.Statistics{
+				Rating:            1.15,
+				KillsPerRound:     0.74,
+				Headshots:         42.5,
+				MapsPlayed:        63,
+				DeathsPerRound:    0.64,
+				RoundsContributed: 72.2,
+			},
+			Social: []models.Social{
+				{Name: "twitter", Link: "https://www.twitter.com/jotafps"},
+				{Name: "twitch", Link: "https://www.twitch.tv/jotaacs"},
+				{Name: "instagram", Link: "https://www.instagram.com/jotaacs"},
+			},
+		},
+		{
+			Id:        13042,
+			Age:       24,
+			Team:      "No team",
+			Nickname:  "LOGAN",
+			FirstName: "Logan",
+			LastName:  "Corti",
+			Country:   "France",
+			Stats: models.Statistics{
+				Rating:            0.00,
+				KillsPerRound:     0.00,
+				Headshots:         0.00,
+				MapsPlayed:        0,
+				DeathsPerRound:    0.00,
+				RoundsContributed: 0.00,
+			},
+			Social: []models.Social{},
+		},
 	}
 
 	p := NewPlayerParser(fileUrlBuilder.NewFileUrlBuilder())
+	players, err := p.GetPlayers()
+	if err != nil {
+		t.Fatalf("Error: %s\n", err.Error())
+	}
+
+	playersMap := make(map[int]models.Player)
+	for _, player := range players {
+		playersMap[player.Id] = player
+	}
+
+	if len(tests) > len(players) {
+		t.Errorf("Didn't get all players. Length of tests is bigger than length of parsed players.")
+	}
 
 	for _, test := range tests {
-		player, err := p.GetPlayer(test.Id)
-
-		if err != nil {
-			t.Errorf("Parse Players %d ended with error. Error: %s\n", test.Id, err.Error())
-		}
-
-		if ok, field := arePlayersEqual(test.Result, *player); !ok {
-			t.Errorf("Parse Players %d ended with error. Field: %s\n", test.Id, field)
+		if player, ok := playersMap[test.Id]; !ok {
+			t.Errorf("Missing player %d\n", test.Id)
+		} else {
+			if ok, field := arePlayersEqual(player, test); !ok {
+				t.Errorf("Players with id %d are not equal. Field: %s", player.Id, field)
+			}
 		}
 	}
 }

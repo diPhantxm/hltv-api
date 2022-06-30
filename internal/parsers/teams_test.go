@@ -10,42 +10,219 @@ import (
 	"testing"
 )
 
-func TestGetTeam(t *testing.T) {
-	tests := []struct {
-		Id     int
-		Result models.Team
-	}{
-		{4869, models.Team{
-			Id:           4869,
-			Ranking:      3,
-			WeeksInTop30: 67,
-			AverageAge:   25.0,
-			Name:         "ence",
-			Country:      "europe",
+func TestGetAllTeams(t *testing.T) {
+	// Note: Tests might contain reduced amount of entities.
+	tests := []models.Team{
+		{
+			Id:           4608,
+			Ranking:      2,
+			WeeksInTop30: 127,
+			Name:         "Natus Vincere",
+			Country:      "Ukraine",
 			Social: []models.Social{
-				{Name: "twitter", Link: "https://www.twitter.com/ENCE"},
-				{Name: "instagram", Link: "https://www.instagram.com/enceesports"},
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/natusvincere",
+				},
+				{
+					Name: "Instagram",
+					Link: "https://www.instagram.com/natus_vincere_official",
+				},
 			},
 			Achievements: []models.Achievement{
-				{Name: "pgl major antwerp 2022", Placement: "3-4th"},
-				{Name: "pgl major stockholm 2021", Placement: "Group stage"},
-				{Name: "starLadder major berlin 2019", Placement: "1/4 final"},
-				{Name: "iem katowice 2019", Placement: "2nd"},
+				{
+					Name:      "BLAST Premier Spring Final 2022",
+					Placement: "1st",
+				},
+				{
+					Name:      "PGL Major Antwerp 2022",
+					Placement: "2nd",
+				},
+				{
+					Name:      "IEM Katowice 2022",
+					Placement: "3-4th",
+				},
 			},
-		}},
+			AverageAge: 23.2,
+		},
+		{
+			Id:           6673,
+			Ranking:      0,
+			WeeksInTop30: 0,
+			Name:         "NRG",
+			Country:      "United States",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/NRGgg",
+				},
+			},
+			Achievements: []models.Achievement{
+				{
+					Name:      "StarLadder Major Berlin 2019",
+					Placement: "3-4th",
+				},
+				{
+					Name:      "IEM Katowice 2019",
+					Placement: "Group stage",
+				},
+			},
+			AverageAge: 0,
+		},
+		{
+			Id:           10386,
+			Ranking:      30,
+			WeeksInTop30: 55,
+			Name:         "SKADE",
+			Country:      "Bulgaria",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/skadegg",
+				},
+				{
+					Name: "Twitch",
+					Link: "https://www.twitch.tv/skadegg",
+				},
+				{
+					Name: "Instagram",
+					Link: "https://www.instagram.com/skadegg",
+				},
+			},
+			Achievements: []models.Achievement{},
+			AverageAge:   24.4,
+		},
+		{
+			Id:           8248,
+			Ranking:      111,
+			WeeksInTop30: 0,
+			Name:         "PACT",
+			Country:      "Poland",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/PACT_gg",
+				},
+			},
+			Achievements: []models.Achievement{},
+			AverageAge:   25.5,
+		},
+		{
+			Id:           9215,
+			Ranking:      20,
+			WeeksInTop30: 15,
+			Name:         "MIBR",
+			Country:      "Brazil",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/MIBR",
+				},
+			},
+			Achievements: []models.Achievement{
+				{
+					Name:      "StarLadder Major Berlin 2019",
+					Placement: "Group stage",
+				},
+				{
+					Name:      "IEM Katowice 2019",
+					Placement: "3-4th",
+				},
+				{
+					Name:      "FACEIT Major 2018",
+					Placement: "3-4th",
+				},
+			},
+			AverageAge: 23.4,
+		},
+		{
+			Id:           4411,
+			Ranking:      8,
+			WeeksInTop30: 110,
+			Name:         "NIP",
+			Country:      "Sweden",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/nipcs",
+				},
+				{
+					Name: "Instagram",
+					Link: "https://www.instagram.com/nipgaming",
+				},
+			},
+			Achievements: []models.Achievement{
+				{
+					Name:      "PGL Major Antwerp 2022",
+					Placement: "1/4 final",
+				},
+				{
+					Name:      "PGL Major Stockholm 2021",
+					Placement: "1/4 final",
+				},
+				{
+					Name:      "StarLadder Major Berlin 2019",
+					Placement: "Group stage",
+				},
+			},
+			AverageAge: 23.0,
+		},
+		{
+			Id:           5995,
+			Ranking:      6,
+			WeeksInTop30: 72,
+			Name:         "G2",
+			Country:      "Europe",
+			Social: []models.Social{
+				{
+					Name: "Twitter",
+					Link: "https://www.twitter.com/G2esports",
+				},
+				{
+					Name: "Instagram",
+					Link: "https://www.instagram.com/g2esports",
+				},
+			},
+			Achievements: []models.Achievement{
+				{
+					Name:      "PGL Major Antwerp 2022",
+					Placement: "Group stage",
+				},
+				{
+					Name:      "PGL Major Stockholm 2021",
+					Placement: "2nd",
+				},
+				{
+					Name:      "StarLadder Major Berlin 2019",
+					Placement: "Group stage",
+				},
+			},
+			AverageAge: 24.8,
+		},
 	}
 
 	p := NewTeamParser(fileUrlBuilder.NewFileUrlBuilder())
+	teams, err := p.GetTeams()
+	if err != nil {
+		t.Fatalf("Error: %s\n", err.Error())
+	}
+
+	teamsMap := make(map[int]models.Team)
+	for _, team := range teams {
+		teamsMap[team.Id] = team
+	}
+
+	if len(tests) > len(teams) {
+		t.Errorf("Didn't get all teams. Length of tests is bigger than length of parsed teams.")
+	}
 
 	for _, test := range tests {
-		team, err := p.GetTeam(test.Id)
-
-		if err != nil {
-			t.Errorf("Parse %d ended with error. Error: %s\n", test.Id, err.Error())
-		}
-
-		if ok, field := areTeamsEqual(test.Result, *team); !ok {
-			t.Errorf("Parse Team %d ended with error. %s\n", test.Id, field)
+		if team, ok := teamsMap[test.Id]; !ok {
+			t.Errorf("Missing team %d\n", test.Id)
+		} else {
+			if ok, field := areTeamsEqual(team, test); !ok {
+				t.Errorf("Teams with id %d are not equal. Field: %s", team.Id, field)
+			}
 		}
 	}
 }
@@ -103,7 +280,7 @@ func areTeamsEqual(x models.Team, y models.Team) (bool, string) {
 	for i := 0; i < minAchievements; i++ {
 		if !strings.EqualFold(x.Achievements[i].Name, y.Achievements[i].Name) ||
 			!strings.EqualFold(x.Achievements[i].Placement, y.Achievements[i].Placement) {
-			return false, fmt.Sprintf("Field: achievements. Values: %v and %v", x.Achievements, y.Achievements)
+			return false, fmt.Sprintf("Field: achievements. Values: %v and %v", x.Achievements[i], y.Achievements[i])
 		}
 	}
 
