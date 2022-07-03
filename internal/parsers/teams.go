@@ -13,10 +13,10 @@ import (
 )
 
 type TeamParser struct {
-	builder urlBuilder.UrlBuilder
+	builder urlBuilder.TeamUrlBuilder
 }
 
-func NewTeamParser(builder urlBuilder.UrlBuilder) *TeamParser {
+func NewTeamParser(builder urlBuilder.TeamUrlBuilder) *TeamParser {
 	return &TeamParser{
 		builder: builder,
 	}

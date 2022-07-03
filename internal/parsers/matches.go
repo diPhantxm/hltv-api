@@ -14,10 +14,10 @@ import (
 )
 
 type MatchParser struct {
-	builder urlBuilder.UrlBuilder
+	builder urlBuilder.MatchUrlBuilder
 }
 
-func NewMatchParser(builder urlBuilder.UrlBuilder) *MatchParser {
+func NewMatchParser(builder urlBuilder.MatchUrlBuilder) *MatchParser {
 	return &MatchParser{
 		builder: builder,
 	}

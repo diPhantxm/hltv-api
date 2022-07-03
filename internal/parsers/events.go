@@ -13,10 +13,10 @@ import (
 )
 
 type EventParser struct {
-	builder urlBuilder.UrlBuilder
+	builder urlBuilder.EventUrlBuilder
 }
 
-func NewEventParser(builder urlBuilder.UrlBuilder) *EventParser {
+func NewEventParser(builder urlBuilder.EventUrlBuilder) *EventParser {
 	return &EventParser{
 		builder: builder,
 	}

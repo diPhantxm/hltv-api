@@ -13,10 +13,10 @@ import (
 )
 
 type PlayerParser struct {
-	builder urlBuilder.UrlBuilder
+	builder urlBuilder.PlayerUrlBuilder
 }
 
-func NewPlayerParser(builder urlBuilder.UrlBuilder) *PlayerParser {
+func NewPlayerParser(builder urlBuilder.PlayerUrlBuilder) *PlayerParser {
 	return &PlayerParser{
 		builder: builder,
 	}
