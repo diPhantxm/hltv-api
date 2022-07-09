@@ -213,6 +213,12 @@ func (p MatchParser) parse(response *http.Response) (*models.Match, error) {
 	}
 	match.PlayerOfTheMatch = potm
 
+	isOver, err := p.parseIsOver(document)
+	if err != nil {
+		return nil, err
+	}
+	match.IsOver = isOver
+
 	return match, nil
 }
 
@@ -249,16 +255,26 @@ func (p MatchParser) parseStartTime(document *goquery.Document) (time.Time, erro
 	return t, nil
 }
 
-func (p MatchParser) parseMaps(document *goquery.Document) ([]string, error) {
-	maps := []string{}
-	mapTags := document.Find(".mapholder").Find(".mapname")
+func (p MatchParser) parseMaps(document *goquery.Document) ([]models.Map, error) {
+	mapTags := document.Find(".mapholder")
+	maps := make([]models.Map, mapTags.Length())
 
 	if mapTags == nil {
 		return nil, errors.New("no maps were found on page")
 	}
 
-	mapTags.Each(func(t int, selection *goquery.Selection) {
-		maps = append(maps, strings.ToLower(selection.Text()))
+	mapTags.Each(func(i int, selection *goquery.Selection) {
+		mapName := selection.Find(".mapname")
+		maps[i].Name = mapName.Text()
+	})
+
+	scores := document.Find(".results-team-score")
+	scores.Each(func(i int, score *goquery.Selection) {
+		if i%2 == 0 {
+			maps[i/2].TeamAScore, _ = strconv.Atoi(score.Text())
+		} else {
+			maps[i/2].TeamBScore, _ = strconv.Atoi(score.Text())
+		}
 	})
 
 	return maps, nil
@@ -295,4 +311,14 @@ func (p MatchParser) parsePotm(document *goquery.Document) (string, error) {
 	nickname := strings.ToLower(potmNicknameTag.Text())
 
 	return nickname, nil
+}
+
+func (p MatchParser) parseIsOver(document *goquery.Document) (bool, error) {
+	progressTag := document.Find(".countdown")
+
+	if strings.ToLower(progressTag.Text()) == "match over" {
+		return true, nil
+	}
+
+	return false, nil
 }

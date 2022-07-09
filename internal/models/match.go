@@ -7,7 +7,8 @@ type Match struct {
 	TeamA            string    `json:"teamA"`
 	TeamB            string    `json:"teamB"`
 	StartTime        time.Time `json:"start"`
-	Maps             []string  `json:"maps,omitempty"`
+	Maps             []Map     `json:"maps"`
 	Viewers          int       `json:"viewers"`
 	PlayerOfTheMatch string    `json:"playerOfTheMatch,omitempty"`
+	IsOver           bool      `json:"isOver"`
 }
