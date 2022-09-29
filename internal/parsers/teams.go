@@ -143,6 +143,8 @@ func (p TeamParser) parse(response *http.Response) (*models.Team, error) {
 
 	team.Achievements = p.parseAchievements(document)
 
+	team.Roaster = p.parseRoaster(document)
+
 	return team, nil
 }
 
@@ -216,4 +218,29 @@ func (p TeamParser) parseAchievements(document *goquery.Document) []models.Achie
 	})
 
 	return achievements
+}
+
+func (p TeamParser) parseRoaster(document *goquery.Document) models.Roaster {
+	rows := document.Find(".players-table").Find("tbody").Find("tr")
+
+	roaster := make(models.Roaster, rows.Length())
+	rows.Each(func(i int, selection *goquery.Selection) {
+		data := selection.Find(".players-cell")
+		player := models.TeamPlayer{}
+
+		player.Nickname = strings.Trim(data.Eq(0).Text(), "\n ")
+		player.Status = strings.Trim(data.Eq(1).Text(), "\n ")
+
+		timeOntTeam, _ := data.Eq(2).Html()
+		player.TimeOnTeam = strings.ReplaceAll(timeOntTeam, "<br/>", " ")
+
+		player.MapsPlayed, _ = strconv.Atoi(data.Eq(3).Text())
+
+		rating, _ := strconv.ParseFloat(data.Eq(4).Text(), 32)
+		player.Rating = float32(rating)
+
+		roaster[i] = player
+	})
+
+	return roaster
 }

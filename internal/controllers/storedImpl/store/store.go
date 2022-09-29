@@ -17,12 +17,12 @@ type Store struct {
 func NewStore(config Config) (*Store, error) {
 	db, err := sql.Open(config.Driver, config.ConnectionString)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	if err := db.Ping(); err != nil {
 		fmt.Println(err.Error())
-		return nil, nil
+		return nil, err
 	}
 
 	factory := NewRepoFactory(config, db)

@@ -7,6 +7,4 @@ import (
 type PlayersRepo interface {
 	Get(expr func(models.Player) bool) []models.Player
 	AddOrEdit(player models.Player)
-	Add(player models.Player)
-	Edit(player models.Player)
 }

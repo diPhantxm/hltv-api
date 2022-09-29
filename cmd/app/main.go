@@ -5,21 +5,23 @@ import (
 	"hltvapi/internal/controllers"
 	"hltvapi/internal/controllers/storedImpl"
 	"hltvapi/internal/controllers/storedImpl/store"
+	"log"
 )
 
 func main() {
 	config := api.Config{
-		Address: "localhost",
-		Port:    ":8080",
+		Address: "0.0.0.0",
+		Port:    ":5000",
 	}
 
 	dbConfig := store.Config{
-		ConnectionString: "user=postgres password=3d1p4h1t5m dbname=hltvapi sslmode=disable",
+		ConnectionString: "host=hltv-db port=5432 user=postgres password=3d1p4h1t5m dbname=hltvapi sslmode=disable",
 		Driver:           "postgres",
 	}
 
 	store, err := store.NewStore(dbConfig)
 	if err != nil {
+		log.Fatalf(err.Error())
 		return
 	}
 

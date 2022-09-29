@@ -1,6 +1,8 @@
 package models
 
 type Social struct {
-	Name string `json:"name"`
-	Link string `json:"link"`
+	Team   Team
+	Player Player
+	Name   string `json:"name"`
+	Link   string `json:"link"`
 }

@@ -10,8 +10,8 @@ import (
 	"testing"
 )
 
+// Note: Tests might contain reduced amount of entities.
 func TestGetAllTeams(t *testing.T) {
-	// Note: Tests might contain reduced amount of entities.
 	tests := []models.Team{
 		{
 			Id:           4608,
@@ -19,6 +19,50 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 127,
 			Name:         "Natus Vincere",
 			Country:      "Ukraine",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "s1mple",
+					Status:     "STARTER",
+					TimeOnTeam: "5 years 10 months",
+					MapsPlayed: 1085,
+					Rating:     1.30,
+				},
+				{
+					Nickname:   "electroNic",
+					Status:     "STARTER",
+					TimeOnTeam: "4 years 7 months",
+					MapsPlayed: 884,
+					Rating:     1.16,
+				},
+				{
+					Nickname:   "Perfecto",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 4 months",
+					MapsPlayed: 477,
+					Rating:     1.01,
+				},
+				{
+					Nickname:   "b1t",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 5 months",
+					MapsPlayed: 229,
+					Rating:     1.12,
+				},
+				{
+					Nickname:   "sdy",
+					Status:     "STARTER",
+					TimeOnTeam: "24 days",
+					MapsPlayed: 12,
+					Rating:     1.02,
+				},
+				{
+					Nickname:   "Boombl4",
+					Status:     "BENCHED",
+					TimeOnTeam: "2 years 12 months",
+					MapsPlayed: 531,
+					Rating:     0.99,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -51,6 +95,7 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 0,
 			Name:         "NRG",
 			Country:      "United States",
+			Roaster:      models.Roaster{},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -75,6 +120,43 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 55,
 			Name:         "SKADE",
 			Country:      "Bulgaria",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "dennyslaw",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 9 months",
+					MapsPlayed: 1081,
+					Rating:     1.12,
+				},
+				{
+					Nickname:   "Rainwaker",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 9 months",
+					MapsPlayed: 1077,
+					Rating:     1.11,
+				},
+				{
+					Nickname:   "SHiPZ",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 5 months",
+					MapsPlayed: 606,
+					Rating:     1.11,
+				},
+				{
+					Nickname:   "bubble",
+					Status:     "STARTER",
+					TimeOnTeam: "7 months",
+					MapsPlayed: 188,
+					Rating:     0.93,
+				},
+				{
+					Nickname:   "dream3r",
+					Status:     "STARTER",
+					TimeOnTeam: "5 months",
+					MapsPlayed: 178,
+					Rating:     1.1,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -98,6 +180,43 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 0,
 			Name:         "PACT",
 			Country:      "Poland",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "lunAtic",
+					Status:     "STARTER",
+					TimeOnTeam: "4 years 4 months",
+					MapsPlayed: 840,
+					Rating:     0.95,
+				},
+				{
+					Nickname:   "bnox",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 1 month",
+					MapsPlayed: 189,
+					Rating:     0.99,
+				},
+				{
+					Nickname:   "reatz",
+					Status:     "STARTER",
+					TimeOnTeam: "10 months",
+					MapsPlayed: 123,
+					Rating:     1.00,
+				},
+				{
+					Nickname:   "SAYN",
+					Status:     "STARTER",
+					TimeOnTeam: "3 months",
+					MapsPlayed: 34,
+					Rating:     1.00,
+				},
+				{
+					Nickname:   "TOAO",
+					Status:     "STARTER",
+					TimeOnTeam: "3 months",
+					MapsPlayed: 27,
+					Rating:     0.93,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -113,6 +232,50 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 15,
 			Name:         "MIBR",
 			Country:      "Brazil",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "chelo",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 5 months",
+					MapsPlayed: 219,
+					Rating:     1.16,
+				},
+				{
+					Nickname:   "exit",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 3 months",
+					MapsPlayed: 217,
+					Rating:     1.07,
+				},
+				{
+					Nickname:   "Tuurtle",
+					Status:     "STARTER",
+					TimeOnTeam: "8 months",
+					MapsPlayed: 155,
+					Rating:     1.07,
+				},
+				{
+					Nickname:   "JOTA",
+					Status:     "STARTER",
+					TimeOnTeam: "8 months",
+					MapsPlayed: 139,
+					Rating:     1.19,
+				},
+				{
+					Nickname:   "brnz4n",
+					Status:     "STARTER",
+					TimeOnTeam: "1 month",
+					MapsPlayed: 19,
+					Rating:     1.02,
+				},
+				{
+					Nickname:   "WOOD7",
+					Status:     "BENCHED",
+					TimeOnTeam: "8 months",
+					MapsPlayed: 128,
+					Rating:     1.02,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -141,6 +304,50 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 110,
 			Name:         "NIP",
 			Country:      "Sweden",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "REZ",
+					Status:     "STARTER",
+					TimeOnTeam: "4 years 12 months",
+					MapsPlayed: 961,
+					Rating:     1.08,
+				},
+				{
+					Nickname:   "Plopski",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 10 months",
+					MapsPlayed: 527,
+					Rating:     1.04,
+				},
+				{
+					Nickname:   "hampus",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 1 month",
+					MapsPlayed: 363,
+					Rating:     1.03,
+				},
+				{
+					Nickname:   "es3tag",
+					Status:     "STARTER",
+					TimeOnTeam: "7 months",
+					MapsPlayed: 109,
+					Rating:     0.95,
+				},
+				{
+					Nickname:   "Brollan",
+					Status:     "STARTER",
+					TimeOnTeam: "3 months",
+					MapsPlayed: 37,
+					Rating:     1.15,
+				},
+				{
+					Nickname:   "device",
+					Status:     "BENCHED",
+					TimeOnTeam: "1 year 2 months",
+					MapsPlayed: 129,
+					Rating:     1.13,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -173,6 +380,57 @@ func TestGetAllTeams(t *testing.T) {
 			WeeksInTop30: 72,
 			Name:         "G2",
 			Country:      "Europe",
+			Roaster: models.Roaster{
+				{
+					Nickname:   "JACKZ",
+					Status:     "STARTER",
+					TimeOnTeam: "3 years 6 months",
+					MapsPlayed: 681,
+					Rating:     1.00,
+				},
+				{
+					Nickname:   "huNter-",
+					Status:     "STARTER",
+					TimeOnTeam: "2 years 9 months",
+					MapsPlayed: 537,
+					Rating:     1.13,
+				},
+				{
+					Nickname:   "NiKo",
+					Status:     "STARTER",
+					TimeOnTeam: "1 year 7 months",
+					MapsPlayed: 313,
+					Rating:     1.21,
+				},
+				{
+					Nickname:   "m0NESY",
+					Status:     "STARTER",
+					TimeOnTeam: "5 months",
+					MapsPlayed: 78,
+					Rating:     1.13,
+				},
+				{
+					Nickname:   "Aleksib",
+					Status:     "STARTER",
+					TimeOnTeam: "5 months",
+					MapsPlayed: 71,
+					Rating:     0.93,
+				},
+				{
+					Nickname:   "kennyS",
+					Status:     "BENCHED",
+					TimeOnTeam: "5 years 4 months",
+					MapsPlayed: 879,
+					Rating:     1.11,
+				},
+				{
+					Nickname:   "AMANEK",
+					Status:     "BENCHED",
+					TimeOnTeam: "3 years 3 months",
+					MapsPlayed: 589,
+					Rating:     1.02,
+				},
+			},
 			Social: []models.Social{
 				{
 					Name: "Twitter",
@@ -293,6 +551,20 @@ func areTeamsEqual(x models.Team, y models.Team) (bool, string) {
 		if !strings.EqualFold(x.Social[i].Name, y.Social[i].Name) ||
 			!strings.EqualFold(x.Social[i].Link, y.Social[i].Link) {
 			return false, fmt.Sprintf("Field: social. Values: %v and %v", x.Social, y.Social)
+		}
+	}
+
+	if len(x.Roaster) != len(y.Roaster) {
+		return false, fmt.Sprintf("Field: roaster. Values %v and %v", x.Roaster, y.Roaster)
+	}
+
+	for i := 0; i < len(x.Roaster); i++ {
+		if !strings.EqualFold(x.Roaster[i].Nickname, y.Roaster[i].Nickname) ||
+			!strings.EqualFold(x.Roaster[i].TimeOnTeam, y.Roaster[i].TimeOnTeam) ||
+			x.Roaster[i].MapsPlayed != y.Roaster[i].MapsPlayed ||
+			x.Roaster[i].Rating != y.Roaster[i].Rating ||
+			!strings.EqualFold(x.Roaster[i].Status, y.Roaster[i].Status) {
+			return false, fmt.Sprintf("Field: roaster. Values: %v and %v", x.Roaster[i], y.Roaster[i])
 		}
 	}
 

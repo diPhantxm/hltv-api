@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"hltvapi/internal/controllers"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +36,7 @@ func (a *Api) Run() {
 
 	a.configureRoutes()
 
-	a.handler.Run(a.config.Port)
+	a.handler.Run(fmt.Sprintf("%s%s", a.config.Address, a.config.Port))
 }
 
 func (a *Api) configureRoutes() {
