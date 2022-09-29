@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  hltv-db:
+    hostname: hltv-db
+    image: postgres:latest
+    container_name: "hltv-db"
+    ports: 
+     - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=3d1p4h1t5m
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=hltvapi
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./internal/controllers/storedImpl/store/repos/postgresql/migrations:/migrations
+    command: ["-path", "migrations/", "-database",  "postgres://postgres:3d1p4h1t5m@hltv-db:5432/hltvapi?sslmode=disable", "up"]
+    depends_on:
+      - hltv-db
+  
+  hltv-api:
+    build: .
+    container_name: "hltv-api"
+    expose:
+      - 5000
+    ports:
+     - "5000:5000"
+    links:
+     - hltv-db
+    depends_on:
+     - migrate
+
+volumes:
+  pgdata:
+    external: true
