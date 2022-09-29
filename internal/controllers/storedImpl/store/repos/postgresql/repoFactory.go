@@ -16,25 +16,17 @@ func NewFactory(db *sql.DB) *RepoFactory {
 }
 
 func (f *RepoFactory) CreateEventsRepo() repos.EventsRepo {
-	return EventsRepo{
-		db: f.db,
-	}
+	return NewEventsRepo(f.db)
 }
 
 func (f *RepoFactory) CreateMatchesRepo() repos.MatchesRepo {
-	return MatchesRepo{
-		db: f.db,
-	}
+	return NewMatchesRepo(f.db)
 }
 
 func (f *RepoFactory) CreatePlayersRepo() repos.PlayersRepo {
-	return PlayersRepo{
-		db: f.db,
-	}
+	return NewPlayersRepo(f.db)
 }
 
 func (f *RepoFactory) CreateTeamsRepo() repos.TeamsRepo {
-	return TeamsRepo{
-		db: f.db,
-	}
+	return NewTeamsRepo(f.db)
 }

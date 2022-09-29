@@ -6,7 +6,17 @@ import (
 )
 
 type PlayersRepo struct {
-	db *sql.DB
+	db               *sql.DB
+	socialsRepo      SocialsRepo
+	achievementsRepo AchievementsRepo
+}
+
+func NewPlayersRepo(db *sql.DB) PlayersRepo {
+	return PlayersRepo{
+		db:               db,
+		socialsRepo:      NewSocialsRepo(db),
+		achievementsRepo: NewAchievementsRepo(db),
+	}
 }
 
 func (r PlayersRepo) Get(expr func(models.Player) bool) []models.Player {
@@ -33,6 +43,9 @@ func (r PlayersRepo) Get(expr func(models.Player) bool) []models.Player {
 	var result []models.Player
 	for _, player := range allPlayers {
 		if expr(player) {
+			player.Social = r.socialsRepo.GetByPlayerId(player.Id)
+			player.Achievements = r.achievementsRepo.GetByPlayerId(player.Id)
+
 			result = append(result, player)
 		}
 	}
@@ -42,22 +55,33 @@ func (r PlayersRepo) Get(expr func(models.Player) bool) []models.Player {
 
 func (r PlayersRepo) AddOrEdit(player models.Player) {
 	var count int
-	if err := r.db.QueryRow(`SELECT COUNT(*) FROM player WHERE id=$1`, player.Id).Scan(&count); err != nil {
+	if err := r.db.QueryRow(`SELECT COUNT(*) FROM players WHERE id=$1`, player.Id).Scan(&count); err != nil {
 		return
 	}
 
 	if count == 1 {
-		r.Edit(player)
+		r.edit(player)
 	} else if count == 0 {
-		r.Add(player)
+		r.add(player)
+	}
+
+	for _, social := range player.Social {
+		social.Player = player
+		r.socialsRepo.AddOrEdit(social)
+	}
+
+	for _, achievement := range player.Achievements {
+		achievement.Player = player
+		r.achievementsRepo.AddOrEdit(achievement)
 	}
 }
 
-func (r PlayersRepo) Add(player models.Player) {
-	r.db.Exec(`INSERT INTO players (id, age, nickname, firstname, lastname, country) VALUES ($1, $2, $3, $4, $5, $6)`,
+func (r PlayersRepo) add(player models.Player) {
+	r.db.Exec(`INSERT INTO players (id, age, nickname, team, firstname, lastname, country) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		player.Id,
 		player.Age,
 		player.Nickname,
+		player.Team,
 		player.FirstName,
 		player.LastName,
 		player.Country,
@@ -74,8 +98,8 @@ func (r PlayersRepo) Add(player models.Player) {
 	)
 }
 
-func (r PlayersRepo) Edit(player models.Player) {
-	r.db.QueryRow(`UPDATE players SET age=$1, nickname=$2, firstname=$3, lastname=$4, country=$5
+func (r PlayersRepo) edit(player models.Player) {
+	r.db.Exec(`UPDATE players SET age=$1, nickname=$2, firstname=$3, lastname=$4, country=$5
 	WHERE id=$6`,
 		player.Age,
 		player.Nickname,
@@ -85,7 +109,7 @@ func (r PlayersRepo) Edit(player models.Player) {
 		player.Id,
 	)
 
-	r.db.QueryRow(`UPDATE stats SET rating=$1, killsperround=$2, headshots=$3, mapsplayed=$4, deathsperround=$5, roundscontributed=$6
+	r.db.Exec(`UPDATE stats SET rating=$1, killsperround=$2, headshots=$3, mapsplayed=$4, deathsperround=$5, roundscontributed=$6
 	WHERE id=$7`,
 		player.Stats.Rating,
 		player.Stats.KillsPerRound,

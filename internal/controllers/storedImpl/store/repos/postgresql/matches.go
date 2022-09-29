@@ -2,15 +2,13 @@ package postgresql
 
 import (
 	"database/sql"
-	"fmt"
-	"hltvapi/internal/controllers/storedImpl/store/repos"
 	"hltvapi/internal/models"
 	"time"
 )
 
 type MatchesRepo struct {
 	db       *sql.DB
-	mapsRepo repos.MapsRepo
+	mapsRepo MapsRepo
 }
 
 func NewMatchesRepo(db *sql.DB) MatchesRepo {
@@ -59,14 +57,19 @@ func (r MatchesRepo) AddOrEdit(match models.Match) {
 	}
 
 	if count == 1 {
-		r.Edit(match)
+		r.edit(match)
 	} else if count == 0 {
-		r.Add(match)
+		r.add(match)
+	}
+
+	for _, matchMap := range match.Maps {
+		matchMap.Match = match
+		r.mapsRepo.AddOrEdit(matchMap)
 	}
 }
 
-func (r MatchesRepo) Add(match models.Match) {
-	_, err := r.db.Exec(`INSERT INTO matches (id, teama, teamb, starttime, viewers, playerofthematch, isover) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+func (r MatchesRepo) add(match models.Match) {
+	r.db.Exec(`INSERT INTO matches (id, teama, teamb, starttime, viewers, playerofthematch, isover) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		match.Id,
 		match.TeamA,
 		match.TeamB,
@@ -75,29 +78,16 @@ func (r MatchesRepo) Add(match models.Match) {
 		match.PlayerOfTheMatch,
 		match.IsOver,
 	)
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	for _, matchMap := range match.Maps {
-		matchMap.MatchId = match.Id
-		r.mapsRepo.Add(matchMap)
-	}
 }
 
-func (r MatchesRepo) Edit(match models.Match) {
+func (r MatchesRepo) edit(match models.Match) {
 	r.db.Exec(`UPDATE matches 
-	SET teama=$1, teamb=$2, starttime=$3, viewers=$5, playerofthematch=$6
-	WHERE id=$7`,
+	SET teama=$1, teamb=$2, starttime=$3, viewers=$4, playerofthematch=$5
+	WHERE id=$6`,
 		match.TeamA,
 		match.TeamB,
 		match.StartTime.Unix(),
 		match.Viewers,
 		match.PlayerOfTheMatch,
 		match.Id)
-
-	for _, matchMap := range match.Maps {
-		r.mapsRepo.Edit(matchMap)
-	}
 }

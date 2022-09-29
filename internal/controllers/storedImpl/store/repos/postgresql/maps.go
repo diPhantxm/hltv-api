@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"database/sql"
-	"fmt"
 	"hltvapi/internal/models"
 )
 
@@ -26,7 +25,7 @@ func (r MapsRepo) Get(expr func(matchMap models.Map) bool) []models.Map {
 	for rows.Next() {
 		var matchMap models.Map
 
-		if err := rows.Scan(&matchMap.Id, &matchMap.MatchId, &matchMap.Name, &matchMap.TeamAScore, &matchMap.TeamBScore); err != nil {
+		if err := rows.Scan(&matchMap.Id, &matchMap.Match.Id, &matchMap.Name, &matchMap.TeamAScore, &matchMap.TeamBScore); err != nil {
 			return nil
 		}
 
@@ -54,7 +53,7 @@ func (r MapsRepo) GetByMatchId(id int) []models.Map {
 		var matchMap models.Map
 		matchMap.Id = id
 
-		if err := rows.Scan(&matchMap.MatchId, &matchMap.Name, &matchMap.TeamAScore, &matchMap.TeamBScore); err != nil {
+		if err := rows.Scan(&matchMap.Match.Id, &matchMap.Name, &matchMap.TeamAScore, &matchMap.TeamBScore); err != nil {
 			return nil
 		}
 
@@ -71,27 +70,23 @@ func (r MapsRepo) AddOrEdit(matchMap models.Map) {
 	}
 
 	if count == 1 {
-		r.Edit(matchMap)
+		r.edit(matchMap)
 	} else if count == 0 {
-		r.Add(matchMap)
+		r.add(matchMap)
 	}
 }
 
-func (r MapsRepo) Add(matchMap models.Map) {
-	_, err := r.db.Exec(`INSERT INTO maps (matchid, name, teamascore, teambscore) VALUES ($1, $2, $3, $4)`,
-		matchMap.MatchId,
+func (r MapsRepo) add(matchMap models.Map) {
+	r.db.Exec(`INSERT INTO maps (matchid, name, teamascore, teambscore) VALUES ($1, $2, $3, $4)`,
+		matchMap.Match.Id,
 		matchMap.Name,
 		matchMap.TeamAScore,
 		matchMap.TeamBScore)
-
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
 
-func (r MapsRepo) Edit(matchMap models.Map) {
+func (r MapsRepo) edit(matchMap models.Map) {
 	r.db.Exec(`UPDATE maps SET matchid=$1, name=$2, teamascore=$3, teambscore=$4 WHERE id=$5`,
-		matchMap.MatchId,
+		matchMap.Match.Id,
 		matchMap.Name,
 		matchMap.TeamAScore,
 		matchMap.TeamBScore,

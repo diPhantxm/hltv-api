@@ -11,6 +11,12 @@ type EventsRepo struct {
 	db *sql.DB
 }
 
+func NewEventsRepo(db *sql.DB) EventsRepo {
+	return EventsRepo{
+		db: db,
+	}
+}
+
 func (r EventsRepo) Get(expr func(event models.Event) bool) []models.Event {
 	rows, err := r.db.Query(`SELECT id, name, startdate, enddate, prizepool, location, teams FROM events`)
 	if err != nil {
@@ -52,13 +58,13 @@ func (r EventsRepo) AddOrEdit(event models.Event) {
 	}
 
 	if count == 1 {
-		r.Edit(event)
+		r.edit(event)
 	} else if count == 0 {
-		r.Add(event)
+		r.add(event)
 	}
 }
 
-func (r EventsRepo) Add(event models.Event) {
+func (r EventsRepo) add(event models.Event) {
 	r.db.Exec(`INSERT INTO events (id, name, startdate, enddate, prizepool, location, teams) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		event.Id,
 		event.Name,
@@ -69,7 +75,7 @@ func (r EventsRepo) Add(event models.Event) {
 		strings.Join(event.Teams, ","))
 }
 
-func (r EventsRepo) Edit(event models.Event) {
+func (r EventsRepo) edit(event models.Event) {
 	r.db.Exec(`UPDATE events 
 	SET name=$1, startDate=$2, endDate=$3, prizePool=$4, location=$5, teams=$6
 	WHERE id=$7`,
