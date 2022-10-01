@@ -18,17 +18,17 @@ When new request come, it forms the url and parse the data from the page. Then r
 # Benchmark
 |function|time|memory|allocs|
 |:--------:|:----:|:------:|:------:|
-|ParseEvent|9990612 ns/op|1788898 B/op|15780 allocs/op|
-|ParseMatch|37607000 ns/op|5186073 B/op|76247 allocs/op|
-|ParseTeam|49537895 ns/op|10724525 B/op|67998 allocs/op|
-|ParsePlayer|279530825 ns/op|18018990 B/op|64330 allocs/op|
+|ParseEvent|1,829,307,000 ns/op|4,129,744 B/op|18,994 allocs/op|
+|ParseMatch|40,668,946 ns/op|5,280,532 B/op|76,710 allocs/op|
+|ParseTeam|55,601,717 ns/op|11,166,684 B/op|71,360 allocs/op|
+|ParsePlayer|19,932,157 ns/op|4,352,330 B/op|23,424 allocs/op|
 
 # Test Coverage
 |Parser|Rate|
 |:--------:|:----:|
 |Event|83.3%|
-|Match|82.7%|
-|Team|85.0%|
+|Match|83.5%|
+|Team|86.7%|
 |Player|82.0%|
 
 Other ~17% of coverage rate is checking error for nil:
